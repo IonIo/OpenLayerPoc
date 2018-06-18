@@ -1,0 +1,47 @@
+/* You can add global styles to this file, and also import other style files */
+@import "~@angular/material/prebuilt-themes/indigo-pink.css";
+
+#container{
+    margin-left: 100px;
+}
+.title{ 
+    display: block;
+    margin-left: 10px;
+}
+#left {
+    float: left;
+}
+
+#right {
+    float: left;
+    position: relative;
+    height: 300px;
+    width: 450px;
+    margin-left: 10px;
+}
+
+#map {
+    width: 600px;
+    height: 300px;
+    border: 1px solid #000;
+}
+
+#question {
+    margin-bottom: 20px;
+
+}
+
+#timer {
+    font-weight: bold;
+    display: inline-block;
+}
+
+#quiz {
+    display: none;
+}
+
+#start {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+}

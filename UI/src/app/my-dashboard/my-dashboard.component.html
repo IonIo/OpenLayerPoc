@@ -1,0 +1,47 @@
+<div class="grid-container">
+    <div class="demo-toolbar">
+          <mat-toolbar color="primary">
+            <button mat-icon-button>
+              <mat-icon>menu</mat-icon>
+            </button>
+      
+            <span>GSEC MAP</span>
+            <span class="demo-fill-remaining"></span>
+            <button mat-raised-button color="accent"  (click)="openAddImageDialog()">Add map</button>
+            <button mat-stroked-button (click)="openAddFeatureDialog()">Add feature</button>
+            <mat-form-field>
+              <mat-label>Select mode</mat-label>
+              <mat-select>
+                <mat-option value="View">View</mat-option>
+                <mat-option value="Draw">Draw</mat-option>
+                <mat-option value="Modify">Modify</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </mat-toolbar>
+      </div>
+  <mat-grid-list cols="4" rowHeight="350px">
+    <mat-grid-tile [colspan]="1" [rowspan]="1">
+      <!-- <gsecm-list-map-image-group></gsecm-list-map-image-group> -->
+    </mat-grid-tile>
+    <mat-grid-tile [colspan]="3" [rowspan]="2">
+      <gsecm-m></gsecm-m>
+      <!-- <mat-card class="dashboard-card">
+        <mat-card-header>
+          <mat-card-title>
+            Hello
+            <button mat-icon-button class="more-button" [matMenuTriggerFor]="menu" aria-label="Toggle menu">
+              <mat-icon>more_vert</mat-icon>
+            </button>
+            <mat-menu #menu="matMenu" xPosition="before">
+              <button mat-menu-item>Expand</button>
+              <button mat-menu-item>Remove</button>
+            </mat-menu>
+          </mat-card-title>
+        </mat-card-header>
+        <mat-card-content class="dashboard-card-content">
+          <div>Card Content Here</div>
+        </mat-card-content>
+      </mat-card> -->
+    </mat-grid-tile>
+  </mat-grid-list>
+</div>
