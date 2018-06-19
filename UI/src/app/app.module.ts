@@ -1,56 +1,42 @@
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { AngularMaterialExportModule } from './angular-material-export/angular-material-export.module';
-import { GsecMapComponent } from './map/gsec-map/gsec-map.component';
 import { BrowserModule } from '@angular/platform-browser';
 import { HttpClientModule, HttpClientJsonpModule } from '@angular/common/http';
 
 import { NgModule } from '@angular/core';
+import { MatGridListModule, MatCardModule, MatMenuModule, MatIconModule, MatButtonModule } from '@angular/material';
 
 import { AppComponent } from './app.component';
-import { LayerComponent } from './layer/layer.component';
-import { MapComponent } from './map/map.component';
-import { ViewComponent } from './view/view.component';
-import { CoordinateComponent } from './coordinate/coordinate.component';
-import { SourceOsmComponent } from './source-osm/source-osm.component';
-import { LayerTileComponent } from './layer-tile/layer-tile.component';
-import { TileGridComponent } from './tilegrid/tilegrid.component';
-import { SourceXYZComponent } from './source-xyz/source-xyz.component';
-import { SourceComponent } from './source/source.component';
-import { SourceImageStaticComponent } from './source-imagestatic/source-imagestatic.component';
-import { LayerImageComponent } from './layer-image/layer-image.component';
-import { ProtoMapComponent } from './proto-map/proto-map.component';
-import { HeaderComponent } from './layout/header/header.component';
-import { FooterComponent } from './layout/footer/footer.component';
-import { MainComponent } from './layout/main/main.component';
-import { MyDashboardComponent } from './my-dashboard/my-dashboard.component';
-import { MatGridListModule, MatCardModule, MatMenuModule, MatIconModule, MatButtonModule } from '@angular/material';
-import { ListMapImageGroupComponent } from './list-map-image-group/list-map-image-group.component';
-import { ListMapImageItemComponent } from './list-map-image-item/list-map-image-item.component';
-import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
-import { AddImageItemDialogComponent } from './add-image-item-dialog/add-image-item-dialog.component';
-import { AddFeatureItemDialogComponent } from './add-feature-item-dialog/add-feature-item-dialog.component';
+import { OverlayComponent } from './map/components/overlay/overlay.component';
+
+import {
+  AddImageItemDialogComponent,
+  AddFeatureItemDialogComponent,
+  GsecMapComponent,
+  MyDashboardComponent,
+  ListMapImageGroupComponent,
+  ListMapImageItemComponent,
+} from './map/components/';
+import { OverlayContentComponent } from './map/components/overlay-content/overlay-content.component';
+import { CameraEditFormComponent } from './map/components/forms/camera-edit-form/camera-edit-form.component';
+import { FormContentDirective } from './map/directives/form-content.directive';
+import { PolygonEditFormComponent } from './map/components/forms/polygon-edit-form/polygon-edit-form.component';
+
 @NgModule({
   declarations: [
     AppComponent,
-    MapComponent,
-    ViewComponent,
-    CoordinateComponent,
-    SourceOsmComponent,
-    LayerTileComponent,
-    SourceXYZComponent,
-    TileGridComponent,
-    SourceImageStaticComponent,
-    LayerImageComponent,
-    ProtoMapComponent,
+    AddImageItemDialogComponent,
+    AddFeatureItemDialogComponent,
     GsecMapComponent,
-    HeaderComponent,
-    FooterComponent,
-    MainComponent,
     MyDashboardComponent,
     ListMapImageGroupComponent,
     ListMapImageItemComponent,
-    AddImageItemDialogComponent,
-    AddFeatureItemDialogComponent
+    OverlayComponent,
+    OverlayContentComponent,
+    CameraEditFormComponent,
+    FormContentDirective,
+    PolygonEditFormComponent
   ],
   imports: [
     FormsModule,
@@ -66,7 +52,10 @@ import { AddFeatureItemDialogComponent } from './add-feature-item-dialog/add-fea
     MatIconModule,
     MatButtonModule
   ],
-  entryComponents: [AddFeatureItemDialogComponent, AddImageItemDialogComponent], 
+  entryComponents: [
+    AddFeatureItemDialogComponent,
+     AddImageItemDialogComponent, 
+     CameraEditFormComponent],
   providers: [],
   bootstrap: [AppComponent]
 })

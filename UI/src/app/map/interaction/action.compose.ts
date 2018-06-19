@@ -1,4 +1,4 @@
-import { FeatureService } from './../common/feature.service';
+import { FeatureService } from '../services/feature.service';
 import * as ol from 'openlayers';
 import { Injectable } from '@angular/core';
 // declare var $;
@@ -117,10 +117,19 @@ export class ActionCompose {
     }
 
     public set addInteractions(map: any) {
-        map.addInteraction(new CustomInteraction());
-        // map.addInteraction(this.draw);
+        //map.addInteraction(new CustomInteraction());
+        map.addInteraction(this.draw);
         map.addInteraction(this.select);
-        // map.addInteraction(this.modify);
+        map.addInteraction(this.modify);
+    }
+
+    public setMode(selectedMode: string) {
+        let isModify = selectedMode === 'MODIFY';
+        let isDraw = selectedMode === 'DRAW';
+        let isView = selectedMode === 'VIEW';
+        this.draw.setActive(isView ? !isView : isDraw);
+        this.select.setActive(isView ? !isView : isModify);
+        this.modify.setActive(isView ? !isView : isModify);
     }
 
     public addEventHandler() {

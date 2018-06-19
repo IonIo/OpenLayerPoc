@@ -5,7 +5,7 @@ import {
 } from 'openlayers';
 
 import * as ol from 'openlayers';
-import { StyleDecorator } from './style-decorator';
+import { StyleDecorator } from '../services/style-decorator';
 
 @Injectable({
   providedIn: 'root'
@@ -55,5 +55,31 @@ export class MapFactory {
       }))
     });
     return vector;
-  }  
+  }
+
+  createIconFeature(payload: any): ol.Feature {
+    if (payload.geometry == "POINT") {
+      return this.createPointFeature(payload)
+    }
+  }
+
+  private createPointFeature(payload: any) : ol.Feature {
+    let iconFeature = new ol.Feature({
+      geometry: new ol.geom.Point(payload.coordinate),
+      name: payload.name,
+      population: 4000,
+      rainfall: 500
+    });
+    let iconStyle = new ol.style.Style({
+      image: new ol.style.Icon(/** @type {olx.style.IconOptions} */({
+        anchor: [0.5, 0.5],
+        anchorXUnits: 'pixels',
+        anchorYUnits: 'pixels',
+        src: payload.src 
+      }))
+    });
+    iconFeature.set('featuretype', 'POINT');
+    iconFeature.setStyle(iconStyle);
+    return iconFeature;
+  }
 }

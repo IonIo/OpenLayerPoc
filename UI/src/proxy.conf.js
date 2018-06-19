@@ -5,7 +5,7 @@ const PROXY_CONFIG = [
             "/FileAPI",
             "/UploadFiles"
         ],
-        target: "http://localhost:61832",
+        target: "http://localhost:61833",
         secure: false
     }
 ]
