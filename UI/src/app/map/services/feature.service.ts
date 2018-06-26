@@ -1,15 +1,23 @@
+import { UpdateFeatureAction, AddFeatureAction } from './../common/actions';
 import { Feature } from 'ol/feature';
+
 import { LocalStorageService } from './local-storage.service';
+
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams, HttpRequest, HttpEvent, HttpHeaders } from '@angular/common/http';
+
 import { Observable, BehaviorSubject, Subject } from "rxjs";
 
+
 import * as ol from 'openlayers';
+import { ActionsBusService } from './actions-bus.service';
+import { takeUntil } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
 })
 export class FeatureService {
+  private unsubscribe = new Subject<void>();
   private geojsonFormat = new ol.format.GeoJSON();
   private readonly KEY: string = "feature";
   private extent = [0, 0, 1024, 968];
@@ -18,11 +26,12 @@ export class FeatureService {
     units: 'pixels',
     extent: this.extent
   });
-  public selectedMapId$: string;
-  public features$: BehaviorSubject<any>;
-  public selectedFeature$: BehaviorSubject<any> = new BehaviorSubject<any>(null);
+  public selectedMapId: string;
+  public features$: BehaviorSubject<any> = new BehaviorSubject<any>([]);
+  public actions$: BehaviorSubject<any> = new BehaviorSubject<any>(null);
+
   public get selectedFeature(): Observable<any> {
-    return this.selectedFeature$.asObservable();
+    return this.actions$.asObservable();
   }
 
   public getOpenLayerFeaturesFromGeoJsonFromat(geoJsonObject: any): any{
@@ -36,9 +45,24 @@ export class FeatureService {
   }
 
 
-  constructor(private http: HttpClient, private localStorage: LocalStorageService) { }
+  constructor(private http: HttpClient, private localStorage: LocalStorageService,public  actionsBusService: ActionsBusService) {
 
-  initStore() {
+  this.actionsBusService.of(UpdateFeatureAction)
+    //.pipe(takeUntil(this.unsubscribe))
+     .subscribe(action => {
+       debugger;
+        this.updateFeatures(action.payload);
+     })
+     this.actionsBusService.of(AddFeatureAction)
+     //.pipe(takeUntil(this.unsubscribe))
+      .subscribe(action => {
+        debugger;
+         this.addFeatures(action.payload);
+      })     
+   }
+
+  initStore(mapId: string) {
+    this.selectedMapId = mapId;
     let featureCollections: any = this.localStorage.getItem(this.KEY);
     //If not inialized load test data
     if (!featureCollections) {
@@ -49,9 +73,9 @@ export class FeatureService {
   }
 
   private setFeatureCollectionIfNotExist(featureCollections: any) {
-    let collectionForSelectedMap: any = featureCollections.find(item => item.mapId == this.selectedMapId$);
+    let collectionForSelectedMap: any = featureCollections.find(item => item.mapId == this.selectedMapId);
     if (!collectionForSelectedMap) {
-      collectionForSelectedMap = { mapId: this.selectedMapId$, featureCollection: getDefaultFeatureCollectionDefinition() }
+      collectionForSelectedMap = { mapId: this.selectedMapId, featureCollection: getDefaultFeatureCollectionDefinition() }
       featureCollections.push(collectionForSelectedMap);
       this.localStorage.setItem(this.KEY, collectionForSelectedMap);
     }
@@ -69,7 +93,7 @@ export class FeatureService {
 
   addFeatures(feature: any) {
     let collection: any = this.localStorage.getItem(this.KEY);
-    let concreateCollectionOfFeature = collection.find(item => item.mapId == this.selectedMapId$);
+    let concreateCollectionOfFeature = collection.find(item => item.mapId == this.selectedMapId);
     let featureCollection = concreateCollectionOfFeature.featureCollection.features;
     feature.setId(++featureCollection.length)
     let payload = this.getFeaturePayload(feature);
@@ -85,7 +109,7 @@ export class FeatureService {
 
   updateFeatures(feature: any) {
     let collection: any = this.localStorage.getItem(this.KEY);
-    let concreateCollectionOfFeature = collection.find(item => item.mapId == this.selectedMapId$);
+    let concreateCollectionOfFeature = collection.find(item => item.mapId == this.selectedMapId);
     let payload = this.getFeaturePayload(feature);
     let newArray = concreateCollectionOfFeature.featureCollection.features.map((item, index) => {
       if (item.id == payload) {

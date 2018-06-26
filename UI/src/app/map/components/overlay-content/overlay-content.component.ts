@@ -1,3 +1,6 @@
+import { DrawFeatureMode, FeatureTypes, Map } from './../../interaction/action.compose';
+import { ModifyFeatureAction, DrawFeatureAction } from './../../common/actions';
+import { ActionsBusService } from './../../services/actions-bus.service';
 import { FormModel } from './../forms/base/base-editor-form';
 import { CameraEditFormComponent } from './../forms/camera-edit-form/camera-edit-form.component';
 import { FormContentDirective } from './../../directives/form-content.directive';
@@ -6,9 +9,13 @@ import { Component, OnInit, Input, ViewChild, ElementRef, AfterViewInit, Host, C
 import * as ol from 'openlayers';
 import { BaseEditorForm } from '../forms/base/base-editor-form';
 import { PolygonEditFormComponent } from '../forms/polygon-edit-form/polygon-edit-form.component';
-import { componentRefresh } from '@angular/core/src/render3/instructions';
 
-type ComponentTypes  = CameraEditFormComponent | PolygonEditFormComponent;
+// export static class FeatureTypeName {
+//   public static Camera = "Point";
+//   public static Polygon = "Polygon";
+// }
+
+
 
 @Component({
   selector: 'gsecm-overlay-content',
@@ -21,56 +28,66 @@ type ComponentTypes  = CameraEditFormComponent | PolygonEditFormComponent;
   `,
   styleUrls: ['./overlay-content.component.css']
 })
-export class OverlayContentComponent implements AfterViewInit, OnInit, OnDestroy  {
+export class OverlayContentComponent implements AfterViewInit, OnInit, OnDestroy {
 
   @ViewChild("popup") container: ElementRef;
   @ViewChild("content") content: ElementRef;
   @ViewChild(FormContentDirective) host: FormContentDirective;
   
+  public Camera = "Point";
+  public Polygon = "Polygon";
   private instance: BaseEditorForm<FormModel>;
-  private _feature: any;
-  overlay: any;
-  @Input() set feature(feature: any) {
-    if(feature != null) {
-      let featureType = feature.getGeometry().getType();
-      let coordinates = feature.get("position_coordinate")
-      if(this.gsecMapComponent.selectedMode == 'DRAW') {
-        if(featureType == "Point") {
-          coordinates = feature.getGeometry().getCoordinates();
-          this.createComponent(feature, featureType);
-          this.overlay.setPosition(coordinates);
-        }
-      } else if (this.gsecMapComponent.selectedMode == 'MODIFY') {
-        if(featureType == "Polygon") {
-          this.createComponent(feature, 'Polygon');
-          coordinates = feature.getGeometry().getCoordinates();
-          this.overlay.setPosition(coordinates);
-        }
-      } 
-    }
-  }
-  ngOnInit(): void {
-  }
-  constructor(@Host() public gsecMapComponent: GsecMapComponent, 
-  private componentFactoryResolver: ComponentFactoryResolver) {}
+  public overlay: any;
+  private componentsByFeatureType: Map<Type<any>> = {
+    "Point": CameraEditFormComponent,
+    "Polygon": PolygonEditFormComponent
+  };
+
   
-  private createComponent(feature: any, featureType: string) {
-    let component: Type<any> = CameraEditFormComponent;
-    if(featureType == "Polygon") {
-      component = PolygonEditFormComponent;
-    }
+  constructor(@Host() public gsecMapComponent: GsecMapComponent,
+    private componentFactoryResolver: ComponentFactoryResolver,
+    public actionsBusService: ActionsBusService) {
+
+    this.actionsBusService.of(DrawFeatureAction).subscribe(action => {
+      let payload: DrawFeatureMode = action.payload;
+      if (payload.type == this.Camera) {
+        let coordinates = payload.feature.getGeometry().getCoordinates();
+        this.createComponentAndShowOverlay(coordinates, payload.type, payload.feature);
+      }
+    })
+
+    this.actionsBusService.of(ModifyFeatureAction).subscribe(action => {
+      let payload: DrawFeatureMode = action.payload;
+      if (payload.type ==  this.Polygon) {
+        let coordinates = action.payload.get("position_coordinate")
+        this.createComponentAndShowOverlay(coordinates, payload.type, payload.feature);
+      }
+    })
+  }
+
+  ngOnInit(): void { }
+  
+  ngAfterViewInit(): void {
+    console.log('OverlayContentComponent')
+
+    this.addOverlay();
+  }
+  
+
+  private createComponentAndShowOverlay(coordinates: [number, number], featureType: FeatureTypes, feature: any) {
+    this.createComponent(feature, featureType);
+    this.overlay.setPosition(coordinates);
+  }
+
+  private createComponent(feature: any, featureType: FeatureTypes) {
+    let component = this.componentsByFeatureType[featureType]
     let componentFactory = this.componentFactoryResolver.resolveComponentFactory(component);
     let viewContainerRef = this.host.viewContainerRef;
     viewContainerRef.clear();
     let componentRef = viewContainerRef.createComponent(componentFactory);
     this.instance = (<BaseEditorForm<FormModel>>componentRef.instance);
     this.instance.overlay = this.overlay;
-    let op = this.gsecMapComponent.selectedMode == 'MODIFY' ? 'EDIT' : 'ADD'
-    this.instance.feature({ payload: feature, operation: op });
-  }
-
-  ngAfterViewInit(): void {
-     this.addOverlay();
+    this.instance.feature({ payload: feature, operation: 'ADD' });
   }
 
   private addOverlay() {
@@ -81,7 +98,7 @@ export class OverlayContentComponent implements AfterViewInit, OnInit, OnDestroy
         duration: 250
       }
     });
-    setTimeout(()=>{    
+    setTimeout(() => {
       this.gsecMapComponent.map.addOverlay(this.overlay);
     }, 1000);
   }

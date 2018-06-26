@@ -1,3 +1,6 @@
+import { GsecMapComponent } from './../../components/gsec-map/gsec-map.component';
+import { ChangeFeatureTypeModeAction, ChangeMapModeAction, ReinitializationOfMapAction } from './../../common/actions';
+import { ActionsBusService } from './../../services/actions-bus.service';
 import { LocalStorageService } from './../../services/local-storage.service';
 import { HttpClient } from '@angular/common/http';
 
@@ -7,56 +10,67 @@ import { MapSettingsFeatureService } from './../../services/map-settings-feature
 import { FeatureService } from './../../services/feature.service';
 
 import { ActivatedRoute, Router } from '@angular/router';
-import { Component, Input } from '@angular/core';
+import { Component, Input, ViewChild, AfterViewInit } from '@angular/core';
 import { MatDialog } from '@angular/material';
 
 import { AddImageItemDialogComponent } from './../../components/dialogs/add-image-item-dialog/add-image-item-dialog.component';
-import { AddFeatureItemDialogComponent } from './../../components/dialogs/add-feature-item-dialog/add-feature-item-dialog.component';
+import { log } from 'util';
 
-let featureServiceFactory = (logger: HttpClient, localStorage: LocalStorageService) => {
-  return new FeatureService(logger, localStorage);
-};
+export interface MapState {
+  map: any;
+  mode: string;
+  type: string;
+}
 
 @Component({
   selector: 'map-dashboard',
   templateUrl: './map-dashboard.component.html',
   styleUrls: ['./map-dashboard.component.css'],
-  // providers: [{
-  //   provide: FeatureService,
-  //   useFactory: featureServiceFactory,
-  //   deps: [HttpClient, LocalStorageService]
-  // }]
 })
-export class MapDashboardComponent {
+export class MapDashboardComponent implements AfterViewInit {
+  @ViewChild(GsecMapComponent) gsecMap: GsecMapComponent;
+
   private unsubscribe$: Subject<void> = new Subject<void>();
   private mapsSettingsItems: Observable<MapSettings[]>
-  private selectedMode: string = 'DRAW'
-  private featureType: string = 'Point'
-  private selectedFeature: Observable<any>;
   private mapOptions: MapSettings;
-  
+
   public nextMap(nextMap: any) {
     this.router.navigate(['/map', 1]);
   }
   constructor(private dialog: MatDialog, public featureService: FeatureService,
-    private route: ActivatedRoute,   private router: Router,
-    private mapSettingsFeatureService: MapSettingsFeatureService) {
-
+    private route: ActivatedRoute, private router: Router,
+    private mapSettingsFeatureService: MapSettingsFeatureService,
+    private actionsBusService: ActionsBusService) {
     this.route.params
       .subscribe(params => {
-        this.featureService.selectedMapId$ = params['mapId'] || "1";
-        this.mapOptions = mapSettingsFeatureService.getItemByMapId(params['mapId']);
-        this.featureService.initStore();
+        this.mapOptions = this.mapSettingsFeatureService.getItemByMapId(params['mapId']);
+        this.featureService.initStore(params['mapId'] || "1");
       });
     this.mapsSettingsItems = this.mapSettingsFeatureService.mapSettingsObservable;
-    this.selectedFeature = this.featureService.selectedFeature;
   }
 
-  openAddImageDialog() {
-    let dialogRef = this.dialog.open(AddImageItemDialogComponent, { width: '450px' });
+  ngAfterViewInit() {
+    console.log('MapDashboardComponent')
+  }
+  
+  public openDialog() {
+    this.dialog.open(AddImageItemDialogComponent, { width: '450px' });
   }
 
-  openAddFeatureDialog() {
-    let dialogRef = this.dialog.open(AddFeatureItemDialogComponent, { width: '450px' });
+  public featureTypeEvent(type: string) {
+    this.actionsBusService.publish(new ChangeFeatureTypeModeAction(type));
   }
+
+  public selectedModeEvent(mode: string) {
+    this.actionsBusService.publish(new ChangeMapModeAction(mode));
+  }
+
+  public changeMapConfig(mapConfig: MapSettings) {
+    this.actionsBusService.publish(new ReinitializationOfMapAction(mapConfig));
+  }
+
+  public createdMapEvent(map: any) {
+
+  }
+
 }

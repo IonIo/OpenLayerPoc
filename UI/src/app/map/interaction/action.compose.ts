@@ -1,9 +1,17 @@
+import { Actions, UpdateFeatureAction, AddFeatureAction, ChangeMapModeAction, ChangeFeatureTypeModeAction, OpenAddDialogFeatureAction, DrawFeatureAction } from './../common/actions';
+import { ActionsBusService } from './../services/actions-bus.service';
 import { FeatureService } from '../services/feature.service';
 import * as ol from 'openlayers';
 import { Injectable, EventEmitter } from '@angular/core';
 
-interface Map<T> {
+export interface Map<T> {
     [key: string]: T;
+}
+export type FeatureTypes = 'Point' | 'Polygon';
+
+export interface DrawFeatureMode {
+   type: FeatureTypes; 
+   feature: any;
 }
 
 module app {
@@ -95,12 +103,12 @@ export class ActionCompose {
     public draw: ol.interaction.Draw;
     public map: any;
     public nextMap: EventEmitter<any> = new EventEmitter<any>(true);
-    private _featureType: string;
+
+    private _featureType: string = 'Point';
     public get featureType(): string {
         return this._featureType;
     }
     public set featureType(featureType: string) {
-        debugger;
         if (this._featureType != featureType) {
             this._featureType = featureType;
             if (this.map != null) {
@@ -127,15 +135,23 @@ export class ActionCompose {
         return this.select.getFeatures()
     }
 
-    constructor(private featureService: FeatureService) { }
-
+    constructor(private featureService: FeatureService,
+        public actionsBusService: ActionsBusService) {
+        this.actionsBusService.of(ChangeFeatureTypeModeAction).subscribe(action => {
+            this.featureType = action.payload;
+        });
+        this.actionsBusService.of(ChangeMapModeAction).subscribe(action => {
+            this.setMode(action.payload)
+        });
+    }
 
     public setMap(map: any) {
         this.map = map;
     }
 
-    private _selectedMode: string
+    private _selectedMode: string = 'DRAW'
     public setMode(selectedMode: string) {
+        debugger;
         if (selectedMode === 'DRAW') {
             this.addDrawInteraction();
         } else {
@@ -172,9 +188,7 @@ export class ActionCompose {
                 let featureType = feature.getGeometry().getType();
                 if (featureType == "Polygon") {
                     this.nextMap.emit(feature);
-                    env.selected = [];
                     this._vectorSource.clear()
-                    this.selectDoubleClick.getFeatures().clear();
                     this.select.getFeatures().clear();
                 }
             }
@@ -192,14 +206,13 @@ export class ActionCompose {
         });
         this.map.addInteraction(this.draw);
         this.draw.on('drawend', (evt) => {
-            debugger;
-            this.featureService.selectedFeature$.next(evt.feature)
+            this.actionsBusService.publish(new DrawFeatureAction({ type: this.featureType, feature: evt.feature }));
         })
     }
 
     public addSelectEventHandler() {
         this.select.on('select', (evt) => {
-            this.featureService.selectedFeature$.next(this.select.getFeatures())
+            //this.featureService.selectedFeature$.next(this.select.getFeatures())
         })
         this.selectedFeature.on('add', (evt) => {
             var feature = evt.element;
@@ -211,7 +224,8 @@ export class ActionCompose {
             var feature = evt.element;
             var fid = feature.getId();
             if (this.dirty[fid] === true) {
-                this.featureService.updateFeatures(feature);
+                this.actionsBusService.publish(new UpdateFeatureAction(feature));
+                //this.featureService.updateFeatures(feature);
             }
         })
     }

@@ -17,6 +17,7 @@ import {
   GsecMapComponent,
   ListMapImageGroupComponent,
   ListMapImageItemComponent,
+  ToolbarComponent
 } from './map/components/';
 
 import {
@@ -27,6 +28,7 @@ import { OverlayContentComponent } from './map/components/overlay-content/overla
 import { CameraEditFormComponent } from './map/components/forms/camera-edit-form/camera-edit-form.component';
 import { FormContentDirective } from './map/directives/form-content.directive';
 import { PolygonEditFormComponent } from './map/components/forms/polygon-edit-form/polygon-edit-form.component';
+
 
 @NgModule({
   declarations: [
@@ -41,7 +43,8 @@ import { PolygonEditFormComponent } from './map/components/forms/polygon-edit-fo
     OverlayContentComponent,
     CameraEditFormComponent,
     FormContentDirective,
-    PolygonEditFormComponent
+    PolygonEditFormComponent,
+    ToolbarComponent,
   ],
   imports: [
     AppRoutingModule,

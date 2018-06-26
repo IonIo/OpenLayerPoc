@@ -1,0 +1,17 @@
+<div class="toolbar-container">
+    <button mat-raised-button color="accent" (click)="openDialog.emit()">Add map</button>
+    <mat-form-field class="mat-select-field">
+      <mat-label>Geometry type</mat-label>
+      <mat-select [(ngModel)]="featureType">
+        <mat-option value="Point">Camera</mat-option>
+        <mat-option value="Polygon">Polygon</mat-option>
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field  class="mat-select-field">
+      <mat-label>Select mode</mat-label>
+      <mat-select [(ngModel)]="selectedMode">
+        <mat-option value="DRAW">Draw</mat-option>
+        <mat-option value="MODIFY">Modify</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
