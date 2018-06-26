@@ -34,7 +34,7 @@ import { PolygonEditFormComponent } from './map/components/forms/polygon-edit-fo
     AddImageItemDialogComponent,
     AddFeatureItemDialogComponent,
     GsecMapComponent,
-    MyDashboardComponent,
+    MapDashboardComponent,
     ListMapImageGroupComponent,
     ListMapImageItemComponent,
     OverlayComponent,

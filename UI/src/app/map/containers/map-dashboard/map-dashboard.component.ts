@@ -18,9 +18,9 @@ let featureServiceFactory = (logger: HttpClient, localStorage: LocalStorageServi
 };
 
 @Component({
-  selector: 'my-dashboard',
-  templateUrl: './my-dashboard.component.html',
-  styleUrls: ['./my-dashboard.component.css'],
+  selector: 'map-dashboard',
+  templateUrl: './map-dashboard.component.html',
+  styleUrls: ['./map-dashboard.component.css'],
   // providers: [{
   //   provide: FeatureService,
   //   useFactory: featureServiceFactory,
