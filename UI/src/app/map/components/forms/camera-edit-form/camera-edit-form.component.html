@@ -1,0 +1,20 @@
+<h2 mat-dialog-title class="dialog-title">{{modeDescription}}</h2>
+<mat-dialog-content>
+    <div class="example-container">
+        <form [formGroup]="featureForm" class="example-container">
+            <mat-form-field>
+                <input matInput placeholder="Name" formControlName="name" required>
+            </mat-form-field>
+            <!-- <mat-form-field>
+                <input matInput placeholder="Coordinate" formControlName="coordinate" required>
+            </mat-form-field> -->
+            <!-- <mat-form-field>
+                <input matInput placeholder="Link to icon" formControlName="src" required>
+            </mat-form-field> -->
+        </form>
+    </div>
+</mat-dialog-content>
+<mat-dialog-actions>
+    <button mat-button (click)="save()" [disabled]="isValid">Save</button>
+    <button mat-button (click)="dismiss()">Cancel</button>
+</mat-dialog-actions>

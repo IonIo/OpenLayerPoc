@@ -1,0 +1,25 @@
+<h2>Maps</h2>
+<mat-nav-list>
+    <mat-divider></mat-divider>
+    <mat-list-item *ngFor="let map of mapsSettingsItems; let idx = index;" class="dashboard-list" [ngClass]="{'is-row-selected': map == selectMap}">
+        <a matLine class="dashboard-label" [routerLink]="['/map', map.id]" (click)="onMapSelected(map)">
+            {{ map.name }}
+        </a>
+        <button mat-icon-button [matMenuTriggerFor]="itemMenu">
+            <mat-icon>more_vert</mat-icon>
+        </button>
+        <mat-menu #itemMenu="matMenu">
+            <button mat-menu-item (click)=changeMap.emit(map)>
+                <mat-icon>transform</mat-icon>
+                <span>Change map</span>
+            </button>
+            <button mat-menu-item (click)=removeMap.emit(map)>
+                <mat-icon>delete</mat-icon>
+                <span>Delete</span>
+            </button>
+        </mat-menu>
+        <mat-divider></mat-divider>
+    </mat-list-item>
+    <mat-divider></mat-divider>
+</mat-nav-list>
+<br>

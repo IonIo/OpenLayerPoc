@@ -1,0 +1,24 @@
+<h2 mat-dialog-title class="dialog-title">Add dashboard</h2>
+<mat-dialog-content>
+    <div class="dialog-container">
+        <form [formGroup]="mapSettingsForm" class="dialog-container">
+
+            <mat-form-field>
+                <input matInput placeholder="Type" formControlName="geometry" required>
+            </mat-form-field>
+
+            <mat-form-field>
+                <input matInput placeholder="Name" formControlName="name" required>
+            </mat-form-field>
+
+            <mat-form-field>
+                <input matInput placeholder="Coordinate" formControlName="coordinate" required>
+            </mat-form-field>
+
+        </form>
+    </div>
+</mat-dialog-content>
+<mat-dialog-actions>
+    <button mat-button (click)="save()">Save</button>
+    <button mat-button (click)="dismiss()">Cancel</button>
+</mat-dialog-actions>

@@ -1,3 +1,4 @@
+import { AppRoutingModule } from './app-routing.module';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { AngularMaterialExportModule } from './angular-material-export/angular-material-export.module';
@@ -14,10 +15,14 @@ import {
   AddImageItemDialogComponent,
   AddFeatureItemDialogComponent,
   GsecMapComponent,
-  MyDashboardComponent,
   ListMapImageGroupComponent,
   ListMapImageItemComponent,
 } from './map/components/';
+
+import {
+  MapDashboardComponent,
+} from './map/containers/';
+
 import { OverlayContentComponent } from './map/components/overlay-content/overlay-content.component';
 import { CameraEditFormComponent } from './map/components/forms/camera-edit-form/camera-edit-form.component';
 import { FormContentDirective } from './map/directives/form-content.directive';
@@ -39,6 +44,7 @@ import { PolygonEditFormComponent } from './map/components/forms/polygon-edit-fo
     PolygonEditFormComponent
   ],
   imports: [
+    AppRoutingModule,
     FormsModule,
     HttpClientJsonpModule,
     ReactiveFormsModule,
@@ -53,6 +59,7 @@ import { PolygonEditFormComponent } from './map/components/forms/polygon-edit-fo
     MatButtonModule
   ],
   entryComponents: [
+    PolygonEditFormComponent,
     AddFeatureItemDialogComponent,
      AddImageItemDialogComponent, 
      CameraEditFormComponent],

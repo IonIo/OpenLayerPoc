@@ -1,0 +1,28 @@
+<h2 mat-dialog-title class="dialog-title">Add map</h2>
+<mat-dialog-content>
+    <div class="dialog-container">
+        <form [formGroup]="mapSettingsForm" class="dialog-container">
+            <mat-form-field>
+                <input matInput placeholder="Name" formControlName="name" required>
+            </mat-form-field>
+
+            <mat-form-field>
+                <input matInput placeholder="Max Zoom" formControlName="maxZoom" required>
+            </mat-form-field>
+
+            <mat-form-field>
+                <input matInput placeholder="Zoom" formControlName="zoom" required>
+            </mat-form-field>
+
+            <input type="file" #file name="file" id="file" class="inputfile" data-multiple-caption="{count} files selected" />
+            <label for="file" #label>
+                <span #fileName>Choose a file</span>
+            </label>
+        </form>
+
+    </div>
+</mat-dialog-content>
+<mat-dialog-actions>
+    <button mat-button (click)="save()" [disabled]="!mapSettingsForm.valid">Save</button>
+    <button mat-button (click)="dismiss()">Cancel</button>
+</mat-dialog-actions>

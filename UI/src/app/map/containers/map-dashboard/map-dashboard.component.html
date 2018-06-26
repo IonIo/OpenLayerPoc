@@ -1,0 +1,43 @@
+<div class="grid-container">
+  <div class="demo-toolbar">
+    <mat-toolbar color="primary">
+      <button mat-icon-button>
+        <mat-icon>menu</mat-icon>
+      </button>
+      <span>GSEC MAP</span>
+      <span class="demo-fill-remaining"></span>
+    </mat-toolbar>
+  </div>
+  <div class="toolbar-container">
+      <button mat-raised-button color="accent" (click)="openAddImageDialog()">Add map</button>
+      <!-- <button mat-stroked-button (click)="openAddFeatureDialog()">Add feature</button> -->
+      <mat-form-field class="mat-select-field">
+        <mat-label>Geometry type</mat-label>
+        <mat-select [(ngModel)]="featureType">
+          <mat-option value="Point">Camera</mat-option>
+          <mat-option value="Polygon">Polygon</mat-option>
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field  class="mat-select-field">
+        <mat-label>Select mode</mat-label>
+        <mat-select [(ngModel)]="selectedMode">
+          <mat-option value="DRAW">Draw</mat-option>
+          <mat-option value="MODIFY">Modify</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+  <mat-grid-list cols="4" rowHeight="350px">
+    <mat-grid-tile [colspan]="1" [rowspan]="1">
+      <gsecm-list-map-image-group [mapsSettingsItems]="mapsSettingsItems | async" [routerLinkUrl]="'/map'">
+      </gsecm-list-map-image-group>
+    </mat-grid-tile>
+    <mat-grid-tile [colspan]="3" [rowspan]="2">
+      <gsecm-m [selectedMode]="selectedMode" [mapOptions]="mapOptions" [featureType]="featureType" (nextMap)="nextMap($event)" >
+        <gsecm-overlay>
+          <gsecm-overlay-content [feature]="selectedFeature | async">
+          </gsecm-overlay-content>
+        </gsecm-overlay>
+      </gsecm-m>
+    </mat-grid-tile>
+  </mat-grid-list>
+</div>

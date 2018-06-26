@@ -2,8 +2,7 @@ import { Component, OnInit, ElementRef } from '@angular/core';
 
 @Component({
   selector: 'gsecm-overlay',
-  template: '<ng-content></ng-content>',
-  styleUrls: ['./overlay.component.css']
+  template: '<ng-content></ng-content>'
 })
 export class OverlayComponent {
   constructor(

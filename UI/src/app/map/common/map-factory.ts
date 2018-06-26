@@ -12,8 +12,8 @@ import { StyleDecorator } from '../services/style-decorator';
 })
 export class MapFactory {
 
-  private extent = [0, 0, 1024, 968];
-  private projection = new proj.Projection({
+  private readonly extent = [0, 0, 1024, 968];
+  private readonly projection = new proj.Projection({
     code: 'xkcd-image',
     units: 'pixels',
     extent: this.extent
@@ -23,6 +23,7 @@ export class MapFactory {
     return new ol.Map({
       target: 'map',
       view: new ol.View({
+        interactions: ol.interaction.defaults({ doubleClickZoom: false }),
         projection: this.projection,
         center: ol.extent.getCenter(this.extent),
         zoom: options.zoom, //2
@@ -31,20 +32,23 @@ export class MapFactory {
     });
   }
 
-  public addImageStaticSource(map: any, staticSourceOptions) {
-    let layerImage = new layer.Image({
-      source: new source.ImageStatic({
-        attributions: [
-          new Attribution({
-            html: staticSourceOptions.html
-          })
-        ],
-        url: staticSourceOptions.url,
-        projection: this.projection,
-        imageExtent: this.extent
-      })
+  public createStaticImageSource(staticSourceOptions): source.ImageStatic {
+    return new source.ImageStatic({
+      attributions: [
+        new Attribution({
+          html: staticSourceOptions.html
+        })
+      ],
+      url: staticSourceOptions.url,
+      projection: this.projection,
+      imageExtent: this.extent
+    })
+  }
+
+  public createImageLayer(staticSourceOptions: any) {
+    return new layer.Image({
+      source: this.createStaticImageSource(staticSourceOptions)
     });
-    map.addLayer(layerImage);
   }
 
   public createVector(loader: any) {
@@ -63,22 +67,24 @@ export class MapFactory {
     }
   }
 
-  private createPointFeature(payload: any) : ol.Feature {
+  private createPointFeature(payload: any): ol.Feature {
     let iconFeature = new ol.Feature({
       geometry: new ol.geom.Point(payload.coordinate),
       name: payload.name,
       population: 4000,
       rainfall: 500
     });
+    let iconOptions = {
+      anchor: [0.5, 0.5],
+      anchorXUnits: 'pixels',
+      anchorYUnits: 'pixels',
+      src: payload.src
+    }
     let iconStyle = new ol.style.Style({
-      image: new ol.style.Icon(/** @type {olx.style.IconOptions} */({
-        anchor: [0.5, 0.5],
-        anchorXUnits: 'pixels',
-        anchorYUnits: 'pixels',
-        src: payload.src 
-      }))
+      image: new ol.style.Icon(iconOptions)
     });
     iconFeature.set('featuretype', 'POINT');
+    iconFeature.set('icon_style_options', iconOptions);
     iconFeature.setStyle(iconStyle);
     return iconFeature;
   }
