@@ -1,24 +1,16 @@
 import { Injectable } from '@angular/core';
 import Feature from 'ol/feature';
 import * as ol from 'openlayers';
+
 @Injectable({
   providedIn: 'root'
 })
 
 export class StyleDecorator {
 
-  applyFeatureStyle(feature: any) {
-    if(feature.get('featuretype') == "POINT") {
-      let options = feature.get('icon_style_options') || {
-             'anchor': [0.5, 0.5],
-             'anchorxunits': 'pixels',
-             'anchoryunits': 'pixels',
-             'src': 'http://localhost:4251/assets/icon.png'
-           };
-      let iconStyle = new ol.style.Style({
-        image: new ol.style.Icon(options)
-      });
-      return iconStyle
+  applyFeatureStyle(feature: any): ol.style.Style {
+    if (feature.get('featuretype') == "POINT") {
+      return this.getFeatureStyle(feature);
     }
     return new ol.style.Style({
       stroke: new ol.style.Stroke({
@@ -31,16 +23,44 @@ export class StyleDecorator {
       })
     })
   }
-  
-  setAlert(feature: Feature) {
-    if(feature.get('featuretype') == "POINT") {
-     let style = feature.getStyle();
-     let iconStyle = style.getImage();
-     const iconStyleDecorated = Object.assign({}, iconStyle, { color:'rgba(255, 0, 0, 0.6);' });
-     style.setImage(iconStyleDecorated);
-    }
+
+  getFeatureStyle(feature: Feature, color: { color: string } = { color: "white" } ): ol.style.Style {
+    let imageIOptions = Object.assign({}, this.getImageOptions(feature), color);
+    return this.getStyle(imageIOptions);
   }
+
+  private getImageOptions(feature: Feature)  {
+    let options = feature.get('icon_style_options') || {
+      'anchor': [0.5, 0.5],
+      'anchorxunits': 'pixels',
+      'anchoryunits': 'pixels',
+      'src': 'http://localhost:4251/assets/icon.png',
+    };
+    return options;
+  }
+
+  private getStyle(imageIOptions: any) {
+    let iconStyle = new ol.style.Style({
+      image: new ol.style.Icon(imageIOptions),
+      text: new ol.style.Text({
+        textAlign: "center",
+        offsetY: "-20",
+        font: '20px Verdana',
+        fill: new ol.style.Fill({ color: 'white' }),
+        stroke: new ol.style.Stroke({
+          color: 'black', width: 12
+        }),
+        text: "001"
+      })
+    });
+    return iconStyle
+  }
+
 }
+
+
+
+
 
 export interface Map<T> {
   [key: string]: T;
@@ -54,7 +74,7 @@ export class AnimationAlert {
   private duration = 3000;
   private animate: any;
 
-  constructor(private map: any) {}
+  constructor(private map: any) { }
   flash(feature) {
     var start = new Date().getTime();
     var listenerKey;
@@ -66,7 +86,7 @@ export class AnimationAlert {
       var elapsedRatio = elapsed / this.duration;
       var radius = ol.easing.easeOut(elapsedRatio) * 25 + 5;
       var opacity = ol.easing.easeOut(1 - elapsedRatio);
-  
+
       var style = new ol.style.Style({
         image: new ol.style.Circle({
           radius: radius,
@@ -88,6 +108,6 @@ export class AnimationAlert {
     }
     listenerKey = this.map.on('postcompose', this.animate);
 
-}
+  }
 
 }

@@ -49,7 +49,7 @@ export class GsecMapComponent implements AfterViewInit {
   public get nextMap(): EventEmitter<any> {
     return this.actionCompose.nextMap;
   }
-  
+
   private _mapOptions: MapSettings;
   public get mapOptions(): MapSettings {
     return this._mapOptions;
@@ -105,6 +105,7 @@ export class GsecMapComponent implements AfterViewInit {
       style: this.styleDecorator.applyFeatureStyle.bind(this.styleDecorator)
     });
     this.actionCompose.setVectorSource(this.vectorSource);
+    this.actionCompose.setVectorLayer(this.vectorLayer);
   }
 
   ngAfterViewInit() {

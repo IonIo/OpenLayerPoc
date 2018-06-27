@@ -50,13 +50,11 @@ export class FeatureService {
   this.actionsBusService.of(UpdateFeatureAction)
     //.pipe(takeUntil(this.unsubscribe))
      .subscribe(action => {
-       debugger;
         this.updateFeatures(action.payload);
      })
      this.actionsBusService.of(AddFeatureAction)
      //.pipe(takeUntil(this.unsubscribe))
       .subscribe(action => {
-        debugger;
          this.addFeatures(action.payload);
       })     
    }

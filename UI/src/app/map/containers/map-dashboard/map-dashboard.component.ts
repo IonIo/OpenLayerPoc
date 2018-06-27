@@ -50,7 +50,8 @@ export class MapDashboardComponent implements AfterViewInit {
   }
 
   ngAfterViewInit() {
-    console.log('MapDashboardComponent')
+    this.featureTypeEvent("Point");
+    this.selectedModeEvent("DRAW");
   }
   
   public openDialog() {

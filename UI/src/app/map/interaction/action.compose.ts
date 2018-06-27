@@ -1,8 +1,11 @@
+import { StyleDecorator } from './../services/style-decorator';
 import { Actions, UpdateFeatureAction, AddFeatureAction, ChangeMapModeAction, ChangeFeatureTypeModeAction, OpenAddDialogFeatureAction, DrawFeatureAction } from './../common/actions';
 import { ActionsBusService } from './../services/actions-bus.service';
 import { FeatureService } from '../services/feature.service';
 import * as ol from 'openlayers';
 import { Injectable, EventEmitter } from '@angular/core';
+import { interval } from 'rxjs';
+
 
 export interface Map<T> {
     [key: string]: T;
@@ -10,8 +13,8 @@ export interface Map<T> {
 export type FeatureTypes = 'Point' | 'Polygon';
 
 export interface DrawFeatureMode {
-   type: FeatureTypes; 
-   feature: any;
+    type: FeatureTypes;
+    feature: any;
 }
 
 module app {
@@ -104,7 +107,8 @@ export class ActionCompose {
     public map: any;
     public nextMap: EventEmitter<any> = new EventEmitter<any>(true);
 
-    private _featureType: string = 'Point';
+    private _featureType: string;
+    vectorLayer: any;
     public get featureType(): string {
         return this._featureType;
     }
@@ -114,7 +118,7 @@ export class ActionCompose {
             if (this.map != null) {
                 this.map.removeInteraction(this.draw);
                 this.addDrawInteraction();
-                //this.setMode(this._selectedMode);
+                this.setMode(this._selectedMode);
             }
         }
     }
@@ -135,23 +139,48 @@ export class ActionCompose {
         return this.select.getFeatures()
     }
 
+    setVectorLayer(vectorLayer: any): any {
+        this.vectorLayer = vectorLayer;
+    }
+    public lastFeatureIndex: number;
+
     constructor(private featureService: FeatureService,
-        public actionsBusService: ActionsBusService) {
+        public actionsBusService: ActionsBusService, public styleDecorator: StyleDecorator) {
         this.actionsBusService.of(ChangeFeatureTypeModeAction).subscribe(action => {
             this.featureType = action.payload;
         });
         this.actionsBusService.of(ChangeMapModeAction).subscribe(action => {
             this.setMode(action.payload)
         });
+        const source = interval(100);
+        source.subscribe(val => {
+            if (this._vectorSource != null) {
+                var features = this._vectorSource.getFeatures();
+                if(features.length > 0) {
+                    let featuresOfPoints = features.filter(item => item.getGeometry().getType() == "Point")
+                    let random = Math.floor(Math.random() * featuresOfPoints.length);
+                    let f = featuresOfPoints[random];
+                    if(f != null && f.setStyle != null) {
+                        //
+                        f.setStyle(this.styleDecorator.getFeatureStyle(f, { color : 'red'}))
+                        if (this.lastFeatureIndex) {
+                            let p = featuresOfPoints[this.lastFeatureIndex];
+                            p.setStyle(this.styleDecorator.getFeatureStyle(p))
+        
+                        }
+                        this.lastFeatureIndex = random;
+                    }
+                }
+            }
+        })
     }
 
     public setMap(map: any) {
         this.map = map;
     }
 
-    private _selectedMode: string = 'DRAW'
+    private _selectedMode: string;
     public setMode(selectedMode: string) {
-        debugger;
         if (selectedMode === 'DRAW') {
             this.addDrawInteraction();
         } else {
@@ -224,7 +253,7 @@ export class ActionCompose {
             var feature = evt.element;
             var fid = feature.getId();
             if (this.dirty[fid] === true) {
-                this.actionsBusService.publish(new UpdateFeatureAction(feature));
+                //this.actionsBusService.publish(new UpdateFeatureAction(feature));
                 //this.featureService.updateFeatures(feature);
             }
         })
