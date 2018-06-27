@@ -1,4 +1,4 @@
-import { UpdateFeatureAction, AddFeatureAction } from './../common/actions';
+import { UpdateFeatureAction, AddFeatureAction, RemoveFeatureAction } from './../common/actions';
 import { Feature } from 'ol/feature';
 
 import { LocalStorageService } from './local-storage.service';
@@ -34,7 +34,7 @@ export class FeatureService {
     return this.actions$.asObservable();
   }
 
-  public getOpenLayerFeaturesFromGeoJsonFromat(geoJsonObject: any): any{
+  public getOpenLayerFeaturesFromGeoJsonFromat(geoJsonObject: any): any {
     if (this.geojsonFormat == null)
       return [];
 
@@ -45,24 +45,25 @@ export class FeatureService {
   }
 
 
-  constructor(private http: HttpClient, private localStorage: LocalStorageService,public  actionsBusService: ActionsBusService) {
+  constructor(private http: HttpClient, private localStorage: LocalStorageService, public actionsBusService: ActionsBusService) {
 
-  this.actionsBusService.of(UpdateFeatureAction)
-    //.pipe(takeUntil(this.unsubscribe))
-     .subscribe(action => {
-        this.updateFeatures(action.payload);
-     })
-     this.actionsBusService.of(AddFeatureAction)
-     //.pipe(takeUntil(this.unsubscribe))
+    this.actionsBusService.of(UpdateFeatureAction)
       .subscribe(action => {
-         this.addFeatures(action.payload);
-      })     
-   }
+        this.updateFeatures(action.payload);
+      })
+    this.actionsBusService.of(AddFeatureAction)
+      .subscribe(action => {
+        this.addFeatures(action.payload);
+      })
+    this.actionsBusService.of(RemoveFeatureAction)
+      .subscribe(action => {
+        this.removeFeatures(action.payload);
+      })
+  }
 
   initStore(mapId: string) {
     this.selectedMapId = mapId;
     let featureCollections: any = this.localStorage.getItem(this.KEY);
-    //If not inialized load test data
     if (!featureCollections) {
       featureCollections = gedInitData();
       this.localStorage.setItem(this.KEY, featureCollections)
@@ -77,8 +78,6 @@ export class FeatureService {
       featureCollections.push(collectionForSelectedMap);
       this.localStorage.setItem(this.KEY, collectionForSelectedMap);
     }
-    let filtered = collectionForSelectedMap.featureCollection.features.filter(item => item != null);
-    collectionForSelectedMap.featureCollection.features = filtered;
     this.features$ = new BehaviorSubject<any>(this.getOpenLayerFeaturesFromGeoJsonFromat(collectionForSelectedMap.featureCollection));
   }
 
@@ -91,40 +90,137 @@ export class FeatureService {
 
   addFeatures(feature: any) {
     let collection: any = this.localStorage.getItem(this.KEY);
-    let concreateCollectionOfFeature = collection.find(item => item.mapId == this.selectedMapId);
-    let featureCollection = concreateCollectionOfFeature.featureCollection.features;
-    feature.setId(++featureCollection.length)
-    let payload = this.getFeaturePayload(feature);
-    let newArray = [...featureCollection, ...payload];
-    let newArray2 = newArray.filter(item => item != null);
-    concreateCollectionOfFeature.featureCollection.features = newArray2;
-    this.localStorage.setItem(this.KEY, collection);
-    let features: any = this.geojsonFormat.readFeatures(concreateCollectionOfFeature.featureCollection, {
-      featureProjection: this.projection
-    });
+    let collectionIndex = collection.findIndex(item => item.mapId == this.selectedMapId);
+    let index = collection[collectionIndex].featureCollection.features.length;
+    feature.setId(++index)
+    let newCollection = this.updateNestedFeaturesCollectionAddItem(collection, this.getFeaturePayload(feature), collectionIndex)
+    let features = this.getOpenLayerFeaturesFromGeoJsonFromat(newCollection[collectionIndex].featureCollection)
     this.features$.next(features);
+    this.localStorage.setItem(this.KEY, newCollection);
   }
+
 
   updateFeatures(feature: any) {
     let collection: any = this.localStorage.getItem(this.KEY);
-    let concreateCollectionOfFeature = collection.find(item => item.mapId == this.selectedMapId);
-    let payload = this.getFeaturePayload(feature);
-    let newArray = concreateCollectionOfFeature.featureCollection.features.map((item, index) => {
-      if (item.id == payload) {
-        return payload;
-      }
-      return item;
-    }).filter(item => item != null);
-    concreateCollectionOfFeature.featureCollection.features = newArray;
-    this.localStorage.setItem(this.KEY, collection);
+    let collectionIndex = collection.findIndex(item => item.mapId == this.selectedMapId);
+    let newCollection = this.updateNestedFeaturesCollectionUpdateItem(collection, this.getFeaturePayload(feature), collectionIndex);
+    this.localStorage.setItem(this.KEY, newCollection);
   }
 
-  private getFeaturePayload(feature: any) {
-    let payload = this.geojsonFormat.writeFeature(feature, {
-      featureProjection: this.projection
-    })
-    return JSON.parse(payload);
+  removeFeatures(feature: any) {
+    let collection: any = this.localStorage.getItem(this.KEY);
+    let collectionIndex = collection.findIndex(item => item.mapId == this.selectedMapId);
+    let newCollection = this.updateNestedFeaturesCollectionRemoveItem(collection, this.getFeaturePayload(feature), collectionIndex);
+    let col = this.reducer("REMOVE", collection, collectionIndex, this.getFeaturePayload(feature));
+    this.localStorage.setItem(this.KEY, newCollection);
   }
+
+
+  reducer(action: string, collection: any, itemCollectionToUpdate: any, feature: any) {
+    let expression: (items: any, feature?: any) => any[] = null;
+    switch (action) {
+      case "ADD": {
+        expression = (items) => [
+          ...items.featureCollection.features,
+          ...feature
+        ];
+      }
+      case "UPDATE": {
+        expression = (items, feature) => [
+          ...items.featureCollection.features.map((item) => {
+            if (item != null && item.id != null && item.id == feature.id) {
+              return feature;
+            }
+            return item;
+          })
+        ];
+      }
+      case "REMOVE": {
+        expression = (items, feature) => [
+           ...items.featureCollection.features.filter(item => item.id !== feature.id)
+        ];
+      }
+    };
+    return collection.map((item, index) => {
+      if (index !== itemCollectionToUpdate) {
+        return item;
+      }
+      return {
+        ...item,
+        featureCollection: {
+          ...item.featureCollection,
+          features: [
+            ...expression(item, feature)
+          ]
+        }
+      }
+    })
+  }
+
+
+  updateNestedFeaturesCollectionUpdateItem(collection: any, feature: any, itemCollectionToUpdate: number) {
+    return collection.map((item, index) => {
+      if (index !== itemCollectionToUpdate) {
+        return item;
+      }
+      return {
+        ...item,
+        featureCollection: {
+          ...item.featureCollection,
+          features: [
+            ...item.featureCollection.features.map((item, index) => {
+              if (item != null && item.id != null && item.id == feature.id) {
+                return feature;
+              }
+              return item;
+            })
+          ]
+        }
+      }
+    });
+  }
+
+  updateNestedFeaturesCollectionRemoveItem(collection: any, feature: any, itemCollectionToUpdate: number) {
+        return collection.map((item, index) => {
+          if (index !== itemCollectionToUpdate) {
+            return item;
+          }
+          return {
+            ...item,
+            featureCollection: {
+              ...item.featureCollection,
+              features: [
+                ...item.featureCollection.features.filter(item => item.id !== feature.id)
+              ]
+            }
+          }
+        });
+      }
+
+  updateNestedFeaturesCollectionAddItem(collection: any, feature: any, itemToUpdate: number) {
+        return collection.map((item, index) => {
+          if (index !== itemToUpdate) {
+            return item;
+          }
+          return {
+            ...item,
+            featureCollection: {
+              ...item.featureCollection,
+              features: [
+                 ...item.featureCollection.features,
+                 ...feature
+              ]
+            }
+          }
+        });
+      }
+
+  private getFeaturePayload(feature: any) {
+        let payload = this.geojsonFormat.writeFeature(feature, {
+          featureProjection: this.projection
+        })
+    return JSON.parse(payload);
+      }
 }
 
 

@@ -69,7 +69,6 @@ export class OverlayContentComponent implements AfterViewInit, OnInit, OnDestroy
   
   ngAfterViewInit(): void {
     console.log('OverlayContentComponent')
-
     this.addOverlay();
   }
   

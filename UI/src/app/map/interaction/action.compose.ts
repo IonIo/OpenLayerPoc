@@ -1,5 +1,5 @@
 import { StyleDecorator } from './../services/style-decorator';
-import { Actions, UpdateFeatureAction, AddFeatureAction, ChangeMapModeAction, ChangeFeatureTypeModeAction, OpenAddDialogFeatureAction, DrawFeatureAction } from './../common/actions';
+import { Actions, UpdateFeatureAction, AddFeatureAction, ChangeMapModeAction, ChangeFeatureTypeModeAction, OpenAddDialogFeatureAction, DrawFeatureAction, RemoveFeatureAction } from './../common/actions';
 import { ActionsBusService } from './../services/actions-bus.service';
 import { FeatureService } from '../services/feature.service';
 import * as ol from 'openlayers';
@@ -15,17 +15,6 @@ export type FeatureTypes = 'Point' | 'Polygon';
 export interface DrawFeatureMode {
     type: FeatureTypes;
     feature: any;
-}
-
-module app {
-    export var CustomInteraction = function (opt_options) { }
-}
-interface PointerOptions {
-    handleDownEvent?: ((event: ol.MapBrowserPointerEvent) => boolean);
-    handleDragEvent?: ((event: ol.MapBrowserPointerEvent) => boolean);
-    handleEvent?: ((event: ol.MapBrowserPointerEvent) => boolean);
-    handleMoveEvent?: ((event: ol.MapBrowserPointerEvent) => boolean);
-    handleUpEvent?: ((event: ol.MapBrowserPointerEvent) => boolean);
 }
 
 export class DragEvantHandler {
@@ -152,23 +141,26 @@ export class ActionCompose {
         this.actionsBusService.of(ChangeMapModeAction).subscribe(action => {
             this.setMode(action.payload)
         });
-        const source = interval(100);
+        const source = interval(350);
         source.subscribe(val => {
             if (this._vectorSource != null) {
                 var features = this._vectorSource.getFeatures();
-                if(features.length > 0) {
+                if (features.length > 0) {
                     let featuresOfPoints = features.filter(item => item.getGeometry().getType() == "Point")
                     let random = Math.floor(Math.random() * featuresOfPoints.length);
-                    let f = featuresOfPoints[random];
-                    if(f != null && f.setStyle != null) {
-                        //
-                        f.setStyle(this.styleDecorator.getFeatureStyle(f, { color : 'red'}))
-                        if (this.lastFeatureIndex) {
-                            let p = featuresOfPoints[this.lastFeatureIndex];
-                            p.setStyle(this.styleDecorator.getFeatureStyle(p))
-        
-                        }
-                        this.lastFeatureIndex = random;
+                    let f = featuresOfPoints[this.lastFeatureIndex || random];
+                    if (f != null && f.setStyle != null) {
+                        f.setStyle(this.styleDecorator.getFeatureStyle(f, { color: 'red' }))
+                        setTimeout(() => {
+                            if (this.lastFeatureIndex) {
+                                let p = featuresOfPoints[this.lastFeatureIndex];
+                                p.setStyle(this.styleDecorator.getFeatureStyle(p))
+    
+                            } else {
+                                this.lastFeatureIndex = random;
+                            }
+                          }, 1000);
+ 
                     }
                 }
             }
@@ -199,6 +191,22 @@ export class ActionCompose {
         this.map.addInteraction(this.customDragEvantHandlerInteraction);
         this.modify = new ol.interaction.Modify({
             features: this.selectedFeature,
+            condition: evt => {
+                // https://github.com/openlayers/openlayers/issues/6188
+                if (!ol.events.condition.shiftKeyOnly(evt))
+                    return true;
+                let feature = this.vectorSource.getClosestFeatureToCoordinate(evt.coordinate);
+
+                if (!feature)
+                    return false;
+
+                this.vectorSource.removeFeature(feature);
+                this.actionsBusService.publish(new RemoveFeatureAction(feature));
+
+                this.select.getFeatures().clear();
+
+                return false;
+            },
             deleteCondition: function (event) {
                 return ol.events.condition.shiftKeyOnly(event) &&
                     ol.events.condition.singleClick(event);
@@ -235,14 +243,16 @@ export class ActionCompose {
         });
         this.map.addInteraction(this.draw);
         this.draw.on('drawend', (evt) => {
-            this.actionsBusService.publish(new DrawFeatureAction({ type: this.featureType, feature: evt.feature }));
+            if (this.featureType == "Point") {
+                this.actionsBusService.publish(new DrawFeatureAction({ type: this.featureType, feature: evt.feature }));
+            } else {
+                this.actionsBusService.publish(new AddFeatureAction(evt.feature));
+            }
         })
     }
 
     public addSelectEventHandler() {
-        this.select.on('select', (evt) => {
-            //this.featureService.selectedFeature$.next(this.select.getFeatures())
-        })
+        this.select.on('select', (evt) => { });
         this.selectedFeature.on('add', (evt) => {
             var feature = evt.element;
             feature.on('change', (evt) => {
@@ -253,8 +263,7 @@ export class ActionCompose {
             var feature = evt.element;
             var fid = feature.getId();
             if (this.dirty[fid] === true) {
-                //this.actionsBusService.publish(new UpdateFeatureAction(feature));
-                //this.featureService.updateFeatures(feature);
+                this.actionsBusService.publish(new UpdateFeatureAction(feature));
             }
         })
     }
