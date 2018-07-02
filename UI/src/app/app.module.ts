@@ -12,7 +12,7 @@ import { AppComponent } from './app.component';
 import { OverlayComponent } from './map/components/overlay/overlay.component';
 
 import {
-  AddImageItemDialogComponent,
+  EditMapItemDialogComponent,
   AddFeatureItemDialogComponent,
   GsecMapComponent,
   ListMapImageGroupComponent,
@@ -33,7 +33,7 @@ import { PolygonEditFormComponent } from './map/components/forms/polygon-edit-fo
 @NgModule({
   declarations: [
     AppComponent,
-    AddImageItemDialogComponent,
+    EditMapItemDialogComponent,
     AddFeatureItemDialogComponent,
     GsecMapComponent,
     MapDashboardComponent,
@@ -62,10 +62,10 @@ import { PolygonEditFormComponent } from './map/components/forms/polygon-edit-fo
     MatButtonModule
   ],
   entryComponents: [
-    PolygonEditFormComponent,
     AddFeatureItemDialogComponent,
-     AddImageItemDialogComponent, 
-     CameraEditFormComponent],
+    EditMapItemDialogComponent,
+    PolygonEditFormComponent,
+    CameraEditFormComponent],
   providers: [],
   bootstrap: [AppComponent]
 })

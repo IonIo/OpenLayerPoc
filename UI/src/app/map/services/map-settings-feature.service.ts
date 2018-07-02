@@ -1,11 +1,13 @@
+import { ActionsBusService } from './actions-bus.service';
 import { Observable } from 'rxjs';
 import { BehaviorSubject } from 'rxjs';
-
+import { AddMapAction, UpdateMapAction, RemoveMapAction } from '../common/actions';
 import { LocalStorageService } from './local-storage.service';
 
 import { Injectable } from '@angular/core';
 
 import { MapSettings } from './../models/map-settings';
+
 
 @Injectable({
   providedIn: 'root'
@@ -24,8 +26,20 @@ export class MapSettingsFeatureService {
       foundItem = this.mapSettings$.getValue()[0]
     return foundItem;
   }
-  constructor(private localStorageService: LocalStorageService) {
+  constructor(private localStorageService: LocalStorageService, private actionsBusService: ActionsBusService) {
     this.mapSettings$ = new BehaviorSubject<MapSettings[]>(this.initStore());
+    this.actionsBusService.of(AddMapAction)
+      .subscribe(action => {
+        this.addItem(action.payload);
+      })
+    this.actionsBusService.of(UpdateMapAction)
+      .subscribe(action => {
+        this.updateItem(action.payload);
+      })
+    this.actionsBusService.of(RemoveMapAction)
+      .subscribe(action => {
+        this.removeItem(action.payload);
+      })
   }
 
   initStore(): MapSettings[] {
@@ -38,35 +52,57 @@ export class MapSettingsFeatureService {
   }
 
   public addItem(item: MapSettings) {
-
-    let mapSettings = this.mapSettings$.getValue();
-    let index =  mapSettings.length; 
-    let mapItem: MapSettings = {...item, id: (++index).toString() };
-    mapSettings.push(mapItem);
-    this.mapSettings$.next(mapSettings);
-    this.localStorageService.setItem(this.KEY, mapSettings)
+    debugger
+    // let mapSettings = this.mapSettings$.getValue();
+    // let index = mapSettings.length;
+    // let mapItem: MapSettings = { ...item, id: (++index).toString() };
+    // mapSettings.push(mapItem);
+    // this.mapSettings$.next(mapSettings);
+    // this.localStorageService.setItem(this.KEY, mapSettings)
   }
 
-  public updateItem(index: number, item: MapSettings) {
-
+  public updateItem(item: MapSettings) {
+    debugger
+    const mapSettings = this.mapSettings$.getValue();
+    const newArray = mapSettings.map(mapSetting => {
+      if (mapSetting.id === item.id) {
+        const mapToUpdate = Object.assign({}, mapSetting, item);
+        return mapToUpdate;
+      }
+      return mapSetting;
+    });
+//    this.localStorageService.setItem(this.KEY, newArray)
   }
 
-  public removeItem(index: number, item: MapSettings) {
-
+  public removeItem(item: MapSettings) {
+    debugger
+    const mapSettings = this.mapSettings$.getValue();
+    const newArray = mapSettings.filter(mapSetting => mapSetting.id !== item.id);
+   // this.localStorageService.setItem(this.KEY, newArray)
   }
 }
 
 export function gedInitData(): any {
   return [
     {
-      staticSourceOptions: {
-        html: '&copy; <a href="http://xkcd.com/license.html">xkcd</a>',
-        url: 'http://localhost:61833/StaticFiles/maps.jpg'
+      "id": "1",
+      "name": "GSEC Map 1",
+      "zoom": "2",
+      "maxZoom": "8",
+      "staticSourceOptions": {
+        "html": "© <a href=\"http://xkcd.com/license.html\">xkcd</a>",
+        "url": "http://localhost:61833/StaticFiles/maps.jpg"
       },
-      zoom: 2,
-      maxZoom: 8,
-      name: "First Name",
-      id: "1"
+    },
+    {
+      "id": "2",
+      "name": "GSEC Map 1",
+      "zoom": "2",
+      "maxZoom": "8",
+      "staticSourceOptions": {
+        "html": "© <a href=\"http://xkcd.com/license.html\">xkcd</a>",
+        "url": "http://localhost:61833/StaticFiles/GoogleMapSaver.jpg"
+      },
     }
   ]
 }

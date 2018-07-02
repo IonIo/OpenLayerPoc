@@ -27,7 +27,7 @@ export class ToolbarComponent implements OnInit {
   }
 
   @Output()
-  openDialog: EventEmitter<void> = new EventEmitter<void>();
+  createMap: EventEmitter<void> = new EventEmitter<void>();
 
   @Output()
   selectedModeEvent: EventEmitter<string> = new EventEmitter<string>();

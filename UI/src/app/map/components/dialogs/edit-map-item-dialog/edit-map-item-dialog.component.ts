@@ -1,31 +1,41 @@
-import { Component, ViewChild, AfterViewInit, ElementRef } from '@angular/core';
-import { MatDialogRef } from '@angular/material';
+
+import { Component, ViewChild, AfterViewInit, ElementRef, Inject } from '@angular/core';
+import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 
-import { MapSettingsFeatureService } from '../../../services/map-settings-feature.service';
+
+import { ActionsBusService } from './../../../services/actions-bus.service';
 import { UploadService } from '../../../services/upload.service';
 
+import { AddMapAction, UpdateMapAction } from './../../../common/actions';
+import { MapSettings } from './../../../models/map-settings';
+
+
 @Component({
-  selector: 'gsecm-add-image-item-dialog',
-  templateUrl: './add-image-item-dialog.component.html',
-  styleUrls: ['./add-image-item-dialog.component.css']
+  selector: 'gsecm-edit-map-item-dialog',
+  templateUrl: './edit-map-item-dialog.component.html',
+  styleUrls: ['./edit-map-item-dialog.component.css']
 })
-export class AddImageItemDialogComponent implements AfterViewInit {
+export class EditMapItemDialogComponent implements AfterViewInit {
 
   @ViewChild('file') file: ElementRef;
   @ViewChild('label') label: ElementRef;
   @ViewChild('fileName') fileName: ElementRef;
   private mapSettingsForm: FormGroup;
 
-  constructor(private dialogRef: MatDialogRef<AddImageItemDialogComponent>,
-    private mapSettingsFeature: MapSettingsFeatureService,
-    private uploadService: UploadService, private fb: FormBuilder) {
-
+  constructor(private dialogRef: MatDialogRef<EditMapItemDialogComponent>,
+    private actionsBusService: ActionsBusService,
+    private uploadService: UploadService, private fb: FormBuilder,
+    @Inject(MAT_DIALOG_DATA) public data: MapSettings) {
     this.mapSettingsForm = this.fb.group({
+      id: [''],
       name: ['', Validators.required],
       zoom: ['', Validators.required],
       maxZoom: ['', Validators.required]
     });
+    if (data) {
+      this.patchFormValues();
+    }
   }
 
   ngAfterViewInit() {
@@ -44,7 +54,25 @@ export class AddImageItemDialogComponent implements AfterViewInit {
     };
   }
 
+  patchFormValues(): void {
+    this.mapSettingsForm.patchValue({
+      id: this.data.id,
+      zoom: this.data.zoom,
+      maxZoom: this.data.maxZoom,
+      name: this.data.name,
+    })
+  }
+
   save() {
+    if (this.data) {
+      this.actionsBusService.publish(new UpdateMapAction(this.mapSettingsForm.value));
+    } else {
+      this.create()
+    }
+    this.dialogRef.close();
+  }
+
+  private create() {
     this.uploadService.uploadFile(this.file.nativeElement.files[0]).subscribe((response: any) => {
       if (response.status == 200) {
         let serviceImageUrl = 'http://localhost:61833/StaticFiles/{image}'
@@ -55,13 +83,11 @@ export class AddImageItemDialogComponent implements AfterViewInit {
             url: fileUrl
           }
         }
-        let settings = { ...this.mapSettingsForm.value, ...staticSourceOptions }
-        this.mapSettingsFeature.addItem(settings)
+        const settings = { ...this.mapSettingsForm.value, ...staticSourceOptions };
+        this.actionsBusService.publish(new AddMapAction(settings));
       }
     });
-    this.dialogRef.close();
   }
-
   dismiss() {
     this.dialogRef.close();
   }

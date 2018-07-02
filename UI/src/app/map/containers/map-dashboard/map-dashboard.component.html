@@ -15,7 +15,9 @@
 </gsecm-toolbar>
   <mat-grid-list cols="4" rowHeight="350px">
     <mat-grid-tile [colspan]="1" [rowspan]="1">
-      <gsecm-list-map-image-group [mapsSettingsItems]="mapsSettingsItems | async" [routerLinkUrl]="'/map'">
+      <gsecm-list-map-image-group [mapsSettingsItems]="mapsSettingsItems | async" [routerLinkUrl]="'/map'" 
+      (removeMap)="removeMap($event)"
+      (changeMap)="changeMap($event)">
       </gsecm-list-map-image-group>
     </mat-grid-tile>
     <mat-grid-tile [colspan]="3" [rowspan]="2">

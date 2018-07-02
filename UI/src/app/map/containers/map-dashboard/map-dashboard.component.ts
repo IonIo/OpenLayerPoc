@@ -1,20 +1,20 @@
-import { GsecMapComponent } from './../../components/gsec-map/gsec-map.component';
-import { ChangeFeatureTypeModeAction, ChangeMapModeAction, ReinitializationOfMapAction } from './../../common/actions';
-import { ActionsBusService } from './../../services/actions-bus.service';
-import { LocalStorageService } from './../../services/local-storage.service';
-import { HttpClient } from '@angular/common/http';
-
-import { MapSettings } from './../../models/map-settings';
-import { Subject, Observable } from 'rxjs';
-import { MapSettingsFeatureService } from './../../services/map-settings-feature.service';
-import { FeatureService } from './../../services/feature.service';
-
 import { ActivatedRoute, Router } from '@angular/router';
-import { Component, Input, ViewChild, AfterViewInit } from '@angular/core';
+import { Component, ViewChild, AfterViewInit } from '@angular/core';
 import { MatDialog } from '@angular/material';
 
-import { AddImageItemDialogComponent } from './../../components/dialogs/add-image-item-dialog/add-image-item-dialog.component';
-import { log } from 'util';
+import { Subject, Observable } from 'rxjs';
+import { 
+  ChangeFeatureTypeModeAction, 
+  ChangeMapModeAction, 
+  ReinitializationOfMapAction, 
+  UpdateMapAction, AddMapAction, RemoveMapAction 
+} from './../../common/actions';
+import { ActionsBusService } from './../../services/actions-bus.service';
+
+import { MapSettingsFeatureService } from './../../services/map-settings-feature.service';
+import { FeatureService } from './../../services/feature.service';
+import { MapSettings } from './../../models/map-settings';
+import { EditMapItemDialogComponent } from '../../components/dialogs/edit-map-item-dialog/edit-map-item-dialog.component';
 
 export interface MapState {
   map: any;
@@ -28,7 +28,6 @@ export interface MapState {
   styleUrls: ['./map-dashboard.component.css'],
 })
 export class MapDashboardComponent implements AfterViewInit {
-  @ViewChild(GsecMapComponent) gsecMap: GsecMapComponent;
 
   private unsubscribe$: Subject<void> = new Subject<void>();
   private mapsSettingsItems: Observable<MapSettings[]>
@@ -53,10 +52,6 @@ export class MapDashboardComponent implements AfterViewInit {
     this.featureTypeEvent("Point");
     this.selectedModeEvent("DRAW");
   }
-  
-  public openDialog() {
-    this.dialog.open(AddImageItemDialogComponent, { width: '450px' });
-  }
 
   public featureTypeEvent(type: string) {
     this.actionsBusService.publish(new ChangeFeatureTypeModeAction(type));
@@ -74,4 +69,18 @@ export class MapDashboardComponent implements AfterViewInit {
 
   }
 
+  public createMap() {
+    this.dialog.open(EditMapItemDialogComponent, { width: '450px' });
+  }
+
+
+  public removeMap(mapConfig: MapSettings) {
+    this.actionsBusService.publish(new RemoveMapAction(mapConfig));
+  }
+
+
+  public changeMap(mapConfig: MapSettings) {
+    this.dialog.open(EditMapItemDialogComponent, { width: '450px', data:  mapConfig });
+    // this.actionsBusService.publish(new UpdateMapAction(mapConfig));
+  }
 }

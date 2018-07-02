@@ -48,4 +48,31 @@ export class OpenAddDialogFeatureAction implements Action  {
     constructor(public payload: any){ }
 }
 
-export type Actions = AddFeatureAction | UpdateFeatureAction | RemoveFeatureAction | ChangeMapModeAction;
+
+export class AddMapAction implements Action {
+    name: string = 'AddMapAction';
+    constructor(public payload: any){ }
+}
+
+export class RemoveMapAction implements Action {
+    name: string = 'RemoveMapAction';
+    constructor(public payload: any){ }
+}
+
+export class UpdateMapAction implements Action {
+    name: string = 'UpdateMapAction';
+    constructor(public payload: any){ }
+}
+
+export type Actions = AddFeatureAction 
+| UpdateFeatureAction 
+| RemoveFeatureAction 
+| ChangeMapModeAction
+| ChangeFeatureTypeModeAction
+| ReinitializationOfMapAction
+| DrawFeatureAction
+| ModifyFeatureAction
+| OpenAddDialogFeatureAction
+| AddMapAction
+| RemoveMapAction
+| UpdateMapAction

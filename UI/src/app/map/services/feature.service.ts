@@ -89,11 +89,11 @@ export class FeatureService {
   }
 
   addFeatures(feature: any) {
-    let collection: any = this.localStorage.getItem(this.KEY);
-    let collectionIndex = collection.findIndex(item => item.mapId == this.selectedMapId);
+    const collection: any = this.localStorage.getItem(this.KEY);
+    const collectionIndex = collection.findIndex(item => item.mapId == this.selectedMapId);
     let index = collection[collectionIndex].featureCollection.features.length;
     feature.setId(++index)
-    let newCollection = this.updateNestedFeaturesCollectionAddItem(collection, this.getFeaturePayload(feature), collectionIndex)
+    const newCollection = this.updateNestedFeaturesCollectionAddItem(collection, this.getFeaturePayload(feature), collectionIndex)
     let features = this.getOpenLayerFeaturesFromGeoJsonFromat(newCollection[collectionIndex].featureCollection)
     this.features$.next(features);
     this.localStorage.setItem(this.KEY, newCollection);
@@ -111,7 +111,6 @@ export class FeatureService {
     let collection: any = this.localStorage.getItem(this.KEY);
     let collectionIndex = collection.findIndex(item => item.mapId == this.selectedMapId);
     let newCollection = this.updateNestedFeaturesCollectionRemoveItem(collection, this.getFeaturePayload(feature), collectionIndex);
-    let col = this.reducer("REMOVE", collection, collectionIndex, this.getFeaturePayload(feature));
     this.localStorage.setItem(this.KEY, newCollection);
   }
 
@@ -227,7 +226,7 @@ export class FeatureService {
 export function gedInitData(): any {
   return [
     {
-      "mapId": 1,
+      "mapId": "1",
       "featureCollection": {
         "type": "FeatureCollection",
         "crs": {
