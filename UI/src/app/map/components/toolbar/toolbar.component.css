@@ -12,12 +12,17 @@
   }
   
   .toolbar-container {
+   padding-left: 16px;
    flex: 1 1 auto;
   }
   
   .toolbar-container button {
-    margin: 0 4px;
+    z-index: 100000;
+    margin-top: 3vh;
+    float: right;
+    margin-right: 6vh;
   }
+
   .toolbar-container mat-select-field {
     margin: 0 4px;
   }

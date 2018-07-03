@@ -1,10 +1,13 @@
+import { DrawManager } from './draw.events';
 import { StyleDecorator } from './../services/style-decorator';
-import { Actions, UpdateFeatureAction, AddFeatureAction, ChangeMapModeAction, ChangeFeatureTypeModeAction, OpenAddDialogFeatureAction, DrawFeatureAction, RemoveFeatureAction } from './../common/actions';
+import { Actions, UpdateFeatureAction, AddFeatureAction, ChangeMapModeAction, ChangeFeatureTypeModeAction, OpenAddDialogFeatureAction, DrawFeatureAction, RemoveFeatureAction, ModifyFeatureAction } from './../common/actions';
 import { ActionsBusService } from './../services/actions-bus.service';
 import { FeatureService } from '../services/feature.service';
 import * as ol from 'openlayers';
 import { Injectable, EventEmitter } from '@angular/core';
 import { interval } from 'rxjs';
+import { ModifyManager } from './modify.events';
+import { CustomInteraction } from './custom/drag-event-handler';
 
 
 export interface Map<T> {
@@ -17,71 +20,6 @@ export interface DrawFeatureMode {
     feature: any;
 }
 
-export class DragEvantHandler {
-
-    handleDownEvent = function (evt) {
-        var map = evt.map;
-        var feature = map.forEachFeatureAtPixel(evt.pixel,
-            function (feature) {
-                return feature;
-            });
-        if (feature) {
-            this.coordinate_ = evt.coordinate;
-            this.feature_ = feature;
-        }
-        return !!feature;
-    };
-
-
-    /**
-     * @param {ol.MapBrowserEvent} evt Map browser event.
-     */
-    handleDragEvent = function (evt) {
-        var deltaX = evt.coordinate[0] - this.coordinate_[0];
-        var deltaY = evt.coordinate[1] - this.coordinate_[1];
-
-        var geometry = this.feature_.getGeometry();
-        geometry.translate(deltaX, deltaY);
-
-        this.coordinate_[0] = evt.coordinate[0];
-        this.coordinate_[1] = evt.coordinate[1];
-    };
-
-
-    /**
-     * @param {ol.MapBrowserEvent} evt Event.
-     */
-    handleMoveEvent = function (evt) {
-        if (this.cursor_) {
-            var map = evt.map;
-            var feature = map.forEachFeatureAtPixel(evt.pixel,
-                function (feature) {
-                    return feature;
-                });
-            var element = evt.map.getTargetElement();
-            if (feature) {
-                if (element.style.cursor != this.cursor_) {
-                    this.previousCursor_ = element.style.cursor;
-                    element.style.cursor = this.cursor_;
-                }
-            } else if (this.previousCursor_ !== undefined) {
-                element.style.cursor = this.previousCursor_;
-                this.previousCursor_ = undefined;
-            }
-        }
-    };
-    handleUpEvent = function () {
-        this.coordinate_ = null;
-        this.feature_ = null;
-        return false;
-    };
-}
-
-export class CustomInteraction extends ol.interaction.Pointer {
-    constructor() {
-        super(new DragEvantHandler());
-    }
-}
 
 @Injectable({
     providedIn: 'root'
@@ -95,6 +33,9 @@ export class ActionCompose {
     public draw: ol.interaction.Draw;
     public map: any;
     public nextMap: EventEmitter<any> = new EventEmitter<any>(true);
+
+    // public modifyManager: ModifyManager;
+    // public drawManager: DrawManager;
 
     private _featureType: string;
     vectorLayer: any;
@@ -141,34 +82,37 @@ export class ActionCompose {
         this.actionsBusService.of(ChangeMapModeAction).subscribe(action => {
             this.setMode(action.payload)
         });
-        const source = interval(350);
-        source.subscribe(val => {
-            if (this._vectorSource != null) {
-                var features = this._vectorSource.getFeatures();
-                if (features.length > 0) {
-                    let featuresOfPoints = features.filter(item => item.getGeometry().getType() == "Point")
-                    let random = Math.floor(Math.random() * featuresOfPoints.length);
-                    let f = featuresOfPoints[this.lastFeatureIndex || random];
-                    if (f != null && f.setStyle != null) {
-                        f.setStyle(this.styleDecorator.getFeatureStyle(f, { color: 'red' }))
-                        setTimeout(() => {
-                            if (this.lastFeatureIndex) {
-                                let p = featuresOfPoints[this.lastFeatureIndex];
-                                p.setStyle(this.styleDecorator.getFeatureStyle(p))
-    
-                            } else {
-                                this.lastFeatureIndex = random;
-                            }
-                          }, 1000);
- 
-                    }
-                }
-            }
-        })
+        // const source = interval(350);
+        // source.subscribe(val => {
+        //     if (this._vectorSource != null) {
+        //         var features = this._vectorSource.getFeatures();
+        //         if (features.length > 0) {
+        //             let featuresOfPoints = features.filter(item => item.getGeometry().getType() == "Point")
+        //             let random = Math.floor(Math.random() * featuresOfPoints.length);
+        //             let f = featuresOfPoints[this.lastFeatureIndex || random];
+        //             if (f != null && f.setStyle != null) {
+        //                 f.setStyle(this.styleDecorator.getFeatureStyle(f, { color: 'red' }))
+        //                 setTimeout(() => {
+        //                     if (this.lastFeatureIndex) {
+        //                         let p = featuresOfPoints[this.lastFeatureIndex];
+        //                         p.setStyle(this.styleDecorator.getFeatureStyle(p))
+
+        //                     } else {
+        //                         this.lastFeatureIndex = random;
+        //                     }
+        //                   }, 1000);
+
+        //             }
+        //         }
+        //     }
+        // })
     }
 
-    public setMap(map: any) {
+    public setMap(map: any, reinit?: boolean) {
         this.map = map;
+        if (reinit) {
+            this.setMode(this._selectedMode);
+        }
     }
 
     private _selectedMode: string;
@@ -216,6 +160,7 @@ export class ActionCompose {
     }
 
     public addSelectDoubleClick() {
+        //this.modifyManager.onSelectDoubleClickEvent
         this.selectDoubleClick = new ol.interaction.Select({
             condition: ol.events.condition.doubleClick
         });
@@ -234,27 +179,51 @@ export class ActionCompose {
     }
 
     public addDrawInteraction() {
+        // this.modifyManager.onSelectDoubleClickEvent.subscribe(feature => {
+        //     //Add point feature
+        //     if (this.featureType == "Point") {
+        //         this.actionsBusService.publish(new DrawFeatureAction({ type: this.featureType, feature: feature }));
+        //     } else {
+        //         //Add polygon feature
+        //         this.actionsBusService.publish(new AddFeatureAction(feature));
+        //     }
+        // })
         this.map.removeInteraction(this.customDragEvantHandlerInteraction);
         this.map.removeInteraction(this.select);
         this.map.removeInteraction(this.modify);
+        this.map.removeInteraction(this.draw);
         this.draw = new ol.interaction.Draw({
             source: this.vectorSource,
             type: this.featureType
         });
         this.map.addInteraction(this.draw);
         this.draw.on('drawend', (evt) => {
+            //Add point feature
             if (this.featureType == "Point") {
                 this.actionsBusService.publish(new DrawFeatureAction({ type: this.featureType, feature: evt.feature }));
             } else {
+                //Add polygon feature
                 this.actionsBusService.publish(new AddFeatureAction(evt.feature));
             }
         })
     }
 
+    public disposeInteractions() {
+        this.map.removeInteraction(this.customDragEvantHandlerInteraction);
+        this.map.removeInteraction(this.select);
+        this.map.removeInteraction(this.modify);
+        this.map.removeInteraction(this.selectDoubleClick);
+        this.map.removeInteraction(this.draw);
+        this.map = null;
+    }
+
     public addSelectEventHandler() {
         this.select.on('select', (evt) => { });
         this.selectedFeature.on('add', (evt) => {
-            var feature = evt.element;
+
+            const feature = evt.element;
+            this.actionsBusService.publish(new ModifyFeatureAction({ type: feature.getGeometry().getType(), feature: evt.element }));
+
             feature.on('change', (evt) => {
                 this.dirty[evt.target.getId()] = true;
             });

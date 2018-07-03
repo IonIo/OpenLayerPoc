@@ -83,6 +83,7 @@ export class MapFactory {
     let iconStyle = new ol.style.Style({
       image: new ol.style.Icon(iconOptions)
     });
+    iconFeature.set('name', payload.name);
     iconFeature.set('featuretype', 'POINT');
     iconFeature.set('icon_style_options', iconOptions);
     iconFeature.setStyle(iconStyle);

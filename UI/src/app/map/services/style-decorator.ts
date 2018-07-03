@@ -26,7 +26,7 @@ export class StyleDecorator {
 
   getFeatureStyle(feature: Feature, color: { color: string } = { color: "white" } ): ol.style.Style {
     let imageIOptions = Object.assign({}, this.getImageOptions(feature), color);
-    return this.getStyle(imageIOptions);
+    return this.getStyle(imageIOptions, feature.get("name") || "001");
   }
 
   private getImageOptions(feature: Feature)  {
@@ -39,7 +39,7 @@ export class StyleDecorator {
     return options;
   }
 
-  private getStyle(imageIOptions: any) {
+  private getStyle(imageIOptions: any, featureText: string) {
     let iconStyle = new ol.style.Style({
       image: new ol.style.Icon(imageIOptions),
       text: new ol.style.Text({
@@ -50,15 +50,13 @@ export class StyleDecorator {
         stroke: new ol.style.Stroke({
           color: 'black', width: 12
         }),
-        text: "001"
+        text: featureText
       })
     });
     return iconStyle
   }
 
 }
-
-
 
 
 

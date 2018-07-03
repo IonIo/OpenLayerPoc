@@ -9,11 +9,11 @@
     </mat-toolbar>
   </div>
   <gsecm-toolbar 
-  (openDialog)="openDialog($event)"
+  (createMap)="createMap($event)"
   (selectedModeEvent)="selectedModeEvent($event)"
   (featureTypeEvent)="featureTypeEvent($event)">
 </gsecm-toolbar>
-  <mat-grid-list cols="4" rowHeight="350px">
+  <mat-grid-list cols="4" rowHeight="550px">
     <mat-grid-tile [colspan]="1" [rowspan]="1">
       <gsecm-list-map-image-group [mapsSettingsItems]="mapsSettingsItems | async" [routerLinkUrl]="'/map'" 
       (removeMap)="removeMap($event)"

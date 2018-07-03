@@ -1,6 +1,6 @@
 import { FeatureService } from './../../../services/feature.service';
 import { MapFactory } from './../../../common/map-factory';
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, OnInit, Input, OnDestroy } from '@angular/core';
 import { BaseEditorForm, FormModel } from '../base/base-editor-form';
 import { FormBuilder, Validators, FormGroup } from '@angular/forms';
 
@@ -13,7 +13,7 @@ export interface CameraPoint extends FormModel {
   templateUrl: './camera-edit-form.component.html',
   styleUrls: ['./camera-edit-form.component.css']
 })
-export class CameraEditFormComponent extends BaseEditorForm<CameraPoint> {
+export class CameraEditFormComponent extends BaseEditorForm<CameraPoint> implements OnDestroy {
 
   private modeDescription: string = "Edit camera"
   @Input() coordinate: [number, number] = [0,0];
@@ -26,7 +26,7 @@ export class CameraEditFormComponent extends BaseEditorForm<CameraPoint> {
     }
     if(feature.payload) {
       this.featureForm.patchValue({
-        name: "Hello",
+        name: feature.payload.get("name"),
         coordinate: feature.payload.getGeometry().getCoordinates(),
         src: 'http://localhost:4251/assets/icon.png',
         geometry: 'POINT'
@@ -46,15 +46,23 @@ export class CameraEditFormComponent extends BaseEditorForm<CameraPoint> {
       coordinate: [''],
       geometry: ['']
     });
+    console.log("CameraEditFormComponent created")
+  }
+
+  ngOnDestroy(): void {
+    console.log("CameraEditFormComponent destroyed")
   }
 
   onSave(item: CameraPoint) {
-    let newObject = this.mapFactory.createIconFeature(this.featureForm.value);
-    this.featureService.addFeatures(newObject);
-  }
-  onDismiss(item: CameraPoint) {
+    if(this.mode == 'ADD') {
+      let newObject = this.mapFactory.createIconFeature(this.featureForm.value);
+      this.featureService.addFeatures(newObject);
+    } else {
+      this.featureService.updateFeatures(newObject);
 
+    }
   }
+  onDismiss(item: CameraPoint) {}
 
   ngOnInit() {
   }

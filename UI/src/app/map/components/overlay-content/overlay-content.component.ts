@@ -1,5 +1,5 @@
 import { DrawFeatureMode, FeatureTypes, Map } from './../../interaction/action.compose';
-import { ModifyFeatureAction, DrawFeatureAction } from './../../common/actions';
+import { ModifyFeatureAction, DrawFeatureAction, ReinitializationOfMapAction } from './../../common/actions';
 import { ActionsBusService } from './../../services/actions-bus.service';
 import { FormModel } from './../forms/base/base-editor-form';
 import { CameraEditFormComponent } from './../forms/camera-edit-form/camera-edit-form.component';
@@ -9,13 +9,6 @@ import { Component, OnInit, Input, ViewChild, ElementRef, AfterViewInit, Host, C
 import * as ol from 'openlayers';
 import { BaseEditorForm } from '../forms/base/base-editor-form';
 import { PolygonEditFormComponent } from '../forms/polygon-edit-form/polygon-edit-form.component';
-
-// export static class FeatureTypeName {
-//   public static Camera = "Point";
-//   public static Polygon = "Polygon";
-// }
-
-
 
 @Component({
   selector: 'gsecm-overlay-content',
@@ -33,7 +26,7 @@ export class OverlayContentComponent implements AfterViewInit, OnInit, OnDestroy
   @ViewChild("popup") container: ElementRef;
   @ViewChild("content") content: ElementRef;
   @ViewChild(FormContentDirective) host: FormContentDirective;
-  
+
   public Camera = "Point";
   public Polygon = "Polygon";
   private instance: BaseEditorForm<FormModel>;
@@ -43,42 +36,51 @@ export class OverlayContentComponent implements AfterViewInit, OnInit, OnDestroy
     "Polygon": PolygonEditFormComponent
   };
 
-  
+
   constructor(@Host() public gsecMapComponent: GsecMapComponent,
     private componentFactoryResolver: ComponentFactoryResolver,
     public actionsBusService: ActionsBusService) {
+
+    this.actionsBusService.of(ReinitializationOfMapAction).subscribe(action => {
+      this.addOverlay()
+    })
 
     this.actionsBusService.of(DrawFeatureAction).subscribe(action => {
       let payload: DrawFeatureMode = action.payload;
       if (payload.type == this.Camera) {
         let coordinates = payload.feature.getGeometry().getCoordinates();
-        this.createComponentAndShowOverlay(coordinates, payload.type, payload.feature);
+        this.createComponentAndShowOverlay(coordinates, payload.type, payload.feature, 'ADD');
       }
     })
+
 
     this.actionsBusService.of(ModifyFeatureAction).subscribe(action => {
       let payload: DrawFeatureMode = action.payload;
-      if (payload.type ==  this.Polygon) {
-        let coordinates = action.payload.get("position_coordinate")
-        this.createComponentAndShowOverlay(coordinates, payload.type, payload.feature);
-      }
+      let coordinates = payload.feature.get("position_coordinate");
+      this.createComponentAndShowOverlay(coordinates, payload.type, payload.feature, 'EDIT');
+      // if (payload.type == this.Polygon) {
+      //   let coordinates = payload.feature.get("position_coordinate");
+      //   this.createComponentAndShowOverlay(coordinates, payload.type, payload.feature);
+      // }
     })
   }
 
-  ngOnInit(): void { }
-  
+  ngOnInit(): void {
+
+  }
+
   ngAfterViewInit(): void {
     console.log('OverlayContentComponent')
     this.addOverlay();
   }
-  
 
-  private createComponentAndShowOverlay(coordinates: [number, number], featureType: FeatureTypes, feature: any) {
-    this.createComponent(feature, featureType);
+
+  private createComponentAndShowOverlay(coordinates: [number, number], featureType: FeatureTypes, feature: any, operation: string) {
+    this.createComponent(feature, featureType, operation);
     this.overlay.setPosition(coordinates);
   }
 
-  private createComponent(feature: any, featureType: FeatureTypes) {
+  private createComponent(feature: any, featureType: FeatureTypes, operation: string) {
     let component = this.componentsByFeatureType[featureType]
     let componentFactory = this.componentFactoryResolver.resolveComponentFactory(component);
     let viewContainerRef = this.host.viewContainerRef;
@@ -86,7 +88,7 @@ export class OverlayContentComponent implements AfterViewInit, OnInit, OnDestroy
     let componentRef = viewContainerRef.createComponent(componentFactory);
     this.instance = (<BaseEditorForm<FormModel>>componentRef.instance);
     this.instance.overlay = this.overlay;
-    this.instance.feature({ payload: feature, operation: 'ADD' });
+    this.instance.feature({ payload: feature, operation: operation });
   }
 
   private addOverlay() {

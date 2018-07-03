@@ -30,6 +30,10 @@ export class FeatureService {
   public features$: BehaviorSubject<any> = new BehaviorSubject<any>([]);
   public actions$: BehaviorSubject<any> = new BehaviorSubject<any>(null);
 
+  public featuresObservable(): Observable<any> {
+    return this.features$.asObservable();
+  }
+
   public get selectedFeature(): Observable<any> {
     return this.actions$.asObservable();
   }
@@ -46,6 +50,8 @@ export class FeatureService {
 
 
   constructor(private http: HttpClient, private localStorage: LocalStorageService, public actionsBusService: ActionsBusService) {
+
+    console.log("FeatureService created");
 
     this.actionsBusService.of(UpdateFeatureAction)
       .subscribe(action => {
@@ -75,10 +81,9 @@ export class FeatureService {
     let collectionForSelectedMap: any = featureCollections.find(item => item.mapId == this.selectedMapId);
     if (!collectionForSelectedMap) {
       collectionForSelectedMap = { mapId: this.selectedMapId, featureCollection: getDefaultFeatureCollectionDefinition() }
-      featureCollections.push(collectionForSelectedMap);
-      this.localStorage.setItem(this.KEY, collectionForSelectedMap);
+      this.localStorage.setItem(this.KEY, [...featureCollections, collectionForSelectedMap]);
     }
-    this.features$ = new BehaviorSubject<any>(this.getOpenLayerFeaturesFromGeoJsonFromat(collectionForSelectedMap.featureCollection));
+    this.features$.next(this.getOpenLayerFeaturesFromGeoJsonFromat(collectionForSelectedMap.featureCollection));
   }
 
   loadFeatures(extent: any, resolution: any, projection: any, layer: any) {
@@ -89,29 +94,38 @@ export class FeatureService {
   }
 
   addFeatures(feature: any) {
-    const collection: any = this.localStorage.getItem(this.KEY);
-    const collectionIndex = collection.findIndex(item => item.mapId == this.selectedMapId);
-    let index = collection[collectionIndex].featureCollection.features.length;
+    const featureConfig = this.getFeatureConfig();
+    let index = featureConfig.collection[featureConfig.collectionIndex].featureCollection.features.length;
     feature.setId(++index)
-    const newCollection = this.updateNestedFeaturesCollectionAddItem(collection, this.getFeaturePayload(feature), collectionIndex)
-    let features = this.getOpenLayerFeaturesFromGeoJsonFromat(newCollection[collectionIndex].featureCollection)
+    const newCollection = this.updateNestedFeaturesCollectionAddItem(featureConfig.collection, this.getFeaturePayload(feature), 
+      featureConfig.collectionIndex)
+    let features = this.getOpenLayerFeaturesFromGeoJsonFromat(newCollection[featureConfig.collectionIndex].featureCollection)
     this.features$.next(features);
     this.localStorage.setItem(this.KEY, newCollection);
   }
 
 
   updateFeatures(feature: any) {
-    let collection: any = this.localStorage.getItem(this.KEY);
-    let collectionIndex = collection.findIndex(item => item.mapId == this.selectedMapId);
-    let newCollection = this.updateNestedFeaturesCollectionUpdateItem(collection, this.getFeaturePayload(feature), collectionIndex);
+    const featureConfig = this.getFeatureConfig();
+    let newCollection = this.updateNestedFeaturesCollectionUpdateItem(featureConfig.collection, this.getFeaturePayload(feature), 
+    featureConfig.collectionIndex);
     this.localStorage.setItem(this.KEY, newCollection);
   }
 
   removeFeatures(feature: any) {
-    let collection: any = this.localStorage.getItem(this.KEY);
-    let collectionIndex = collection.findIndex(item => item.mapId == this.selectedMapId);
-    let newCollection = this.updateNestedFeaturesCollectionRemoveItem(collection, this.getFeaturePayload(feature), collectionIndex);
+    const featureConfig = this.getFeatureConfig();
+    let newCollection = this.updateNestedFeaturesCollectionRemoveItem(featureConfig.collection, this.getFeaturePayload(feature), 
+      featureConfig.collectionIndex);
     this.localStorage.setItem(this.KEY, newCollection);
+  }
+
+  private getFeatureConfig() {
+    let items: any = this.localStorage.getItem(this.KEY);
+    let collectionIndex = items.findIndex(item => item.mapId == this.selectedMapId);
+    return {
+      collection: items,
+      collectionIndex: collectionIndex
+    }
   }
 
 

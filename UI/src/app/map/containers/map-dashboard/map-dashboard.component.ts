@@ -1,5 +1,5 @@
 import { ActivatedRoute, Router } from '@angular/router';
-import { Component, ViewChild, AfterViewInit } from '@angular/core';
+import { Component, ViewChild, AfterViewInit, OnDestroy } from '@angular/core';
 import { MatDialog } from '@angular/material';
 
 import { Subject, Observable } from 'rxjs';
@@ -27,7 +27,11 @@ export interface MapState {
   templateUrl: './map-dashboard.component.html',
   styleUrls: ['./map-dashboard.component.css'],
 })
-export class MapDashboardComponent implements AfterViewInit {
+export class MapDashboardComponent implements AfterViewInit, OnDestroy {
+  ngOnDestroy(): void {
+  
+     console.log("MapDashboardComponent  destriyed")
+  }
 
   private unsubscribe$: Subject<void> = new Subject<void>();
   private mapsSettingsItems: Observable<MapSettings[]>
@@ -44,6 +48,7 @@ export class MapDashboardComponent implements AfterViewInit {
       .subscribe(params => {
         this.mapOptions = this.mapSettingsFeatureService.getItemByMapId(params['mapId']);
         this.featureService.initStore(params['mapId'] || "1");
+        this.changeMapConfig(this.mapOptions);
       });
     this.mapsSettingsItems = this.mapSettingsFeatureService.mapSettingsObservable;
   }
@@ -65,22 +70,13 @@ export class MapDashboardComponent implements AfterViewInit {
     this.actionsBusService.publish(new ReinitializationOfMapAction(mapConfig));
   }
 
-  public createdMapEvent(map: any) {
-
-  }
-
   public createMap() {
     this.dialog.open(EditMapItemDialogComponent, { width: '450px' });
   }
-
-
   public removeMap(mapConfig: MapSettings) {
     this.actionsBusService.publish(new RemoveMapAction(mapConfig));
   }
-
-
   public changeMap(mapConfig: MapSettings) {
     this.dialog.open(EditMapItemDialogComponent, { width: '450px', data:  mapConfig });
-    // this.actionsBusService.publish(new UpdateMapAction(mapConfig));
   }
 }

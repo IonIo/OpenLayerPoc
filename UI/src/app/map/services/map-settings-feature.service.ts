@@ -28,18 +28,21 @@ export class MapSettingsFeatureService {
   }
   constructor(private localStorageService: LocalStorageService, private actionsBusService: ActionsBusService) {
     this.mapSettings$ = new BehaviorSubject<MapSettings[]>(this.initStore());
+
     this.actionsBusService.of(AddMapAction)
       .subscribe(action => {
         this.addItem(action.payload);
-      })
+      });
+
     this.actionsBusService.of(UpdateMapAction)
       .subscribe(action => {
         this.updateItem(action.payload);
-      })
+      });
+
     this.actionsBusService.of(RemoveMapAction)
       .subscribe(action => {
         this.removeItem(action.payload);
-      })
+      });
   }
 
   initStore(): MapSettings[] {
@@ -52,17 +55,14 @@ export class MapSettingsFeatureService {
   }
 
   public addItem(item: MapSettings) {
-    debugger
-    // let mapSettings = this.mapSettings$.getValue();
-    // let index = mapSettings.length;
-    // let mapItem: MapSettings = { ...item, id: (++index).toString() };
-    // mapSettings.push(mapItem);
-    // this.mapSettings$.next(mapSettings);
-    // this.localStorageService.setItem(this.KEY, mapSettings)
+    const mapSettings = this.mapSettings$.getValue();
+    let index = mapSettings.length;
+    const mapItem: MapSettings = { ...item, id: (++index).toString() };
+    const newArray = [...mapSettings, mapItem];
+    this.saveAndPushUpdates(newArray);
   }
 
   public updateItem(item: MapSettings) {
-    debugger
     const mapSettings = this.mapSettings$.getValue();
     const newArray = mapSettings.map(mapSetting => {
       if (mapSetting.id === item.id) {
@@ -71,14 +71,18 @@ export class MapSettingsFeatureService {
       }
       return mapSetting;
     });
-//    this.localStorageService.setItem(this.KEY, newArray)
+    this.saveAndPushUpdates(newArray);
   }
 
   public removeItem(item: MapSettings) {
-    debugger
     const mapSettings = this.mapSettings$.getValue();
     const newArray = mapSettings.filter(mapSetting => mapSetting.id !== item.id);
-   // this.localStorageService.setItem(this.KEY, newArray)
+    this.saveAndPushUpdates(newArray);
+  }
+
+  private saveAndPushUpdates(newArray: MapSettings[]) {
+    this.mapSettings$.next(newArray);
+    this.localStorageService.setItem(this.KEY, newArray)
   }
 }
 

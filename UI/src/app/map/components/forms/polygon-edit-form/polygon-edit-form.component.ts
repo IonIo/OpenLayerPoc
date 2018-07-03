@@ -16,13 +16,13 @@ export interface Polygon extends FormModel {
 export class PolygonEditFormComponent extends BaseEditorForm<Polygon> {
   featureForm: FormGroup;
   @Input() overlay: any;
-  @Input() feature(feature: any) {
-    super.feature = feature;
-    this.featureItem = feature;
-    if(feature) {
+  @Input() feature(payload: any) {
+    super.feature = payload.feature;
+    this.featureItem = payload.feature;
+    if(payload.feature) {
       this.featureForm.patchValue({ 
-        name: feature.get("name"), 
-        destination: feature.get("destination")
+        name: payload.feature.get("name"), 
+        destination: payload.feature.get("destination")
       });
     }
   }

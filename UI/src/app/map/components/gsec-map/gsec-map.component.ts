@@ -1,7 +1,8 @@
+import { Observable, Subscription } from 'rxjs';
 import { ChangeFeatureTypeModeAction, ChangeMapModeAction } from './../../common/actions';
 import { ActionsBusService } from './../../services/actions-bus.service';
 import { StyleDecorator, AnimationAlert } from './../../services/style-decorator';
-import { Component, AfterViewInit, ViewChild, ElementRef, Input, Output, ContentChild, Host, Self, EventEmitter } from '@angular/core';
+import { Component, AfterViewInit, ViewChild, ElementRef, Input, Output, ContentChild, Host, Self, EventEmitter, OnDestroy } from '@angular/core';
 import * as ol from 'openlayers';
 
 import {
@@ -24,12 +25,24 @@ interface Map<T> {
   templateUrl: './gsec-map.component.html',
   styleUrls: ['./gsec-map.component.css']
 })
-export class GsecMapComponent implements AfterViewInit {
+export class GsecMapComponent implements AfterViewInit, OnDestroy {
+
+  ngOnDestroy(): void {
+    if (this.sub) {
+      this.sub.unsubscribe();
+      this.sub = null;
+    }
+    console.log("MapDashboardComponent  destriyed")
+  }
+
+
 
   public map: ol.Map;
   public vectorSource = ol.source.Vector;
   public staticImageLayer: ol.layer.Image
   public vectorLayer: ol.layer.Vector
+  public features$: Observable<any>;
+  public sub: Subscription;
 
   @ViewChild('map') mapField: ElementRef;
   @ViewChild('popup') popupField: ElementRef;
@@ -45,7 +58,7 @@ export class GsecMapComponent implements AfterViewInit {
   @Output() onPreCompose: EventEmitter<render.Event>;
   @Output() onPropertyChange: EventEmitter<ObjectEvent>;
   @Output() onSingleClick: EventEmitter<MapBrowserEvent>;
-  @Output() 
+  @Output()
   public get nextMap(): EventEmitter<any> {
     return this.actionCompose.nextMap;
   }
@@ -63,32 +76,46 @@ export class GsecMapComponent implements AfterViewInit {
   public reinitMap() {
     if (this.map != null) {
       this.resetMapLayers();
+      this.actionCompose.disposeInteractions();
+      this.destroyMap();
+      this.createMap(true);
       this.addMapLayers();
     }
+  }
+
+  private destroyMap() {
+    this.map.setTarget(null);
+    this.map = null;
+  }
+
+  private createMap(reinit?: boolean): any {
+    this.initMapVector();
+    this.map = this.mapFactory.createMap({ zoom: this.mapOptions.zoom, maxZoom: this.mapOptions.maxZoom });
+    this.staticImageLayer = this.mapFactory.createImageLayer(this.mapOptions.staticSourceOptions);
+    this.map.addLayer(this.staticImageLayer);
+    this.map.addLayer(this.vectorLayer);
+    this.actionCompose.setMap(this.map, reinit);
+    this.addMapOnLick();
   }
 
   private resetMapLayers() {
     this.map.removeLayer(this.staticImageLayer);
     this.map.removeLayer(this.vectorLayer);
     this.staticImageLayer = this.vectorLayer = this.vectorSource = null;
-  } 
+  }
 
 
   private addMapLayers() {
-    this.staticImageLayer = this.mapFactory.createImageLayer(this.mapOptions.staticSourceOptions);
-    this.map.addLayer(this.staticImageLayer);
-    this.initMapVector();
-    this.map.addLayer(this.vectorLayer);
     this.vectorSource.clear();
-    this.vectorSource.addFeatures(this.featureService.features$.getValue());  
-  } 
+    this.vectorSource.addFeatures(this.featureService.features$.getValue());
+  }
 
   constructor(private featureService: FeatureService, private mapFactory: MapFactory,
     private styleDecorator: StyleDecorator, private actionCompose: ActionCompose) {
 
     this.initMapVector()
-
-    this.featureService.features$.subscribe((features) => {
+    this.features$ = this.featureService.featuresObservable();
+    this.sub = this.features$.subscribe((features) => {
       if (features != null && features.length > 0) {
         this.vectorSource.clear();
         this.vectorSource.addFeatures(features);
@@ -109,50 +136,20 @@ export class GsecMapComponent implements AfterViewInit {
   }
 
   ngAfterViewInit() {
-    this.initMapVector();
-    this.map = this.mapFactory.createMap({ zoom: this.mapOptions.zoom, maxZoom: this.mapOptions.maxZoom });
-    this.staticImageLayer = this.mapFactory.createImageLayer(this.mapOptions.staticSourceOptions);
-    this.map.addLayer(this.staticImageLayer);
-    this.map.addLayer(this.vectorLayer);
-    this.actionCompose.setMap(this.map);
+    this.createMap();
     console.log('GsecMap')
-    //this.actionCompose.setMode(this._mode);
-   // this.addMapOnLick();
   }
 
   private addMapOnLick() {
     this.map.on('click', (evt) => {
       let feature = this.map.forEachFeatureAtPixel(evt.pixel, (feature) => feature);
-      if (feature) {
-        // this.featureService.selectedFeature$.next(feature);
-      }
-      // } else {
-      //   feature = this.mapFactory.createIconFeature({
-      //     geometry: 'POINT',
-      //     name: 'Test Name',
-      //     src: 'http://localhost:4251/assets/icon.png',
-      //     coordinate: evt.coordinate
-      //   });
-      //   feature.set("icon_style_options", {
-      //     'anchor': [0.5, 0.5],
-      //     'anchorxunits': 'pixels',
-      //     'anchoryunits': 'pixels',
-      //     'src': 'http://localhost:4251/assets/icon.png'
-      //   })
-      //   this.animationAlert = new AnimationAlert(this.map);
-      //   this.vectorSource.addFeature(feature);
-      //   this.featureService.addFeatures(feature);
-      //   this.animationAlert.flash(feature);
-      // }
     });
     this.map.on('singleclick', (evt) => {
       let feature = this.map.forEachFeatureAtPixel(evt.pixel, (feature) => feature);
       if (feature) {
-        feature.set("position_coordinate", evt.coordinate)
-        this.featureService.actions$.next(feature);
+        feature.set("position_coordinate", evt.coordinate);
       }
     });
-    this.map.on('dblclick', (evt) => { });
   }
 }
 

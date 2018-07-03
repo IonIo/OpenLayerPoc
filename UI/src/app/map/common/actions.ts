@@ -43,6 +43,7 @@ export class ModifyFeatureAction implements Action  {
     constructor(public payload: any){ }
 }
 
+
 export class OpenAddDialogFeatureAction implements Action  {
     name: string = 'OpenAddDialogFeatureAction';
     constructor(public payload: any){ }
