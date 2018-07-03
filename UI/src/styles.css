@@ -4,6 +4,7 @@
 #container{
     margin-left: 100px;
 }
+
 .title{ 
     display: block;
     margin-left: 10px;
@@ -45,3 +46,8 @@
     top: 0px;
     left: 0px;
 }
+
+.is-row-selected {
+   background-color: rgba(255, 255, 255, 0.04);
+}
+

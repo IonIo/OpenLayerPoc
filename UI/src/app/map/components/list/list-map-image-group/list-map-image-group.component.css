@@ -15,3 +15,8 @@
   h2 {
     padding-left: 16px;
   }
+
+ .is-row-selected {
+    background-color: azure;
+ }
+ 

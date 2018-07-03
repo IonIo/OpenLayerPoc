@@ -1,7 +1,7 @@
 <h2>Maps</h2>
 <mat-nav-list>
     <mat-divider></mat-divider>
-    <mat-list-item *ngFor="let map of mapsSettingsItems; let idx = index;" class="dashboard-list" [ngClass]="{'is-row-selected': map == selectMap}">
+    <mat-list-item *ngFor="let map of mapsSettingsItems; let idx = index;" class="dashboard-list" [ngClass]="{'is-row-selected': map == selectedMapSettings}">
         <a matLine class="dashboard-label" [routerLink]="['/map', map.id]" (click)="onMapSelected(map)">
             {{ map.name }}
         </a>

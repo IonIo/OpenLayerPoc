@@ -9,6 +9,7 @@ import { MapSettings } from '../../../models/map-settings';
 })
 export class ListMapImageGroupComponent implements OnInit {
 
+  private selectedMapSettings: MapSettings;
   @Input() mapsSettingsItems;
   @Input() routerLinkUrl;
   @Output() removeMap = new EventEmitter<MapSettings>();
@@ -16,6 +17,7 @@ export class ListMapImageGroupComponent implements OnInit {
   @Output() selectMap = new EventEmitter<MapSettings>();
   onMapSelected(item: MapSettings) {
     this.selectMap.emit(item);
+    this.selectedMapSettings = item;
   }
   constructor() { }
 
