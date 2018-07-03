@@ -1,3 +1,4 @@
+import { HubConnectionBuilder, LogLevel } from '@aspnet/signalr';
 import { DrawManager } from './draw.events';
 import { StyleDecorator } from './../services/style-decorator';
 import { Actions, UpdateFeatureAction, AddFeatureAction, ChangeMapModeAction, ChangeFeatureTypeModeAction, OpenAddDialogFeatureAction, DrawFeatureAction, RemoveFeatureAction, ModifyFeatureAction } from './../common/actions';
@@ -25,6 +26,14 @@ export interface DrawFeatureMode {
     providedIn: 'root'
 })
 export class ActionCompose {
+    public hubUrl = 'http://localhost:4251/alarm';
+    public hubConnection = new HubConnectionBuilder()
+        .withUrl(this.hubUrl)
+        .configureLogging(LogLevel.Information)
+        .build();
+
+
+
     public dirty: Map<any> = {};
     public modify: ol.interaction.Modify;
     public select: ol.interaction.Select;
@@ -79,33 +88,37 @@ export class ActionCompose {
         this.actionsBusService.of(ChangeFeatureTypeModeAction).subscribe(action => {
             this.featureType = action.payload;
         });
+
         this.actionsBusService.of(ChangeMapModeAction).subscribe(action => {
             this.setMode(action.payload)
         });
-        // const source = interval(350);
-        // source.subscribe(val => {
-        //     if (this._vectorSource != null) {
-        //         var features = this._vectorSource.getFeatures();
-        //         if (features.length > 0) {
-        //             let featuresOfPoints = features.filter(item => item.getGeometry().getType() == "Point")
-        //             let random = Math.floor(Math.random() * featuresOfPoints.length);
-        //             let f = featuresOfPoints[this.lastFeatureIndex || random];
-        //             if (f != null && f.setStyle != null) {
-        //                 f.setStyle(this.styleDecorator.getFeatureStyle(f, { color: 'red' }))
-        //                 setTimeout(() => {
-        //                     if (this.lastFeatureIndex) {
-        //                         let p = featuresOfPoints[this.lastFeatureIndex];
-        //                         p.setStyle(this.styleDecorator.getFeatureStyle(p))
 
-        //                     } else {
-        //                         this.lastFeatureIndex = random;
-        //                     }
-        //                   }, 1000);
+        this.hubConnection.on("Send", (data) => {
+            debugger;
+            const source = interval(350);
+            let selectedFeaturesIds = JSON.parse(data);
 
-        //             }
-        //         }
-        //     }
-        // })
+            if (this._vectorSource != null) {
+                var features = this._vectorSource.getFeatures();
+                if (features.length > 0) {
+                    var featuresOfPoints: [any] = features.filter(item => item.getGeometry().getType() == "Point" 
+                    && selectedFeaturesIds.includes(item.getId()))
+                };
+                source.subscribe(val => {
+                 featuresOfPoints.forEach(feature => {
+                    if (feature != null && feature.setStyle != null) {
+                        feature.setStyle(this.styleDecorator.getFeatureStyle(feature, { color: 'red' }))
+                        setTimeout((feature) => {
+                            feature.setStyle(this.styleDecorator.getFeatureStyle(feature))
+                        }, 1000, feature);
+                     }
+                    })
+                  })
+            }
+        });
+                
+           
+        this.hubConnection.start();
     }
 
     public setMap(map: any, reinit?: boolean) {

@@ -20,13 +20,23 @@ export class StyleDecorator {
       }),
       fill: new ol.style.Fill({
         color: 'rgba(0, 0, 255, 0.1)'
+      }),
+      text: new ol.style.Text({
+        textAlign: "center",
+        offsetY: "-20",
+        font: '20px Verdana',
+        fill: new ol.style.Fill({ color: 'white' }),
+        stroke: new ol.style.Stroke({
+          color: 'black', width: 12
+        }),
+        text: feature.get("name") 
       })
     })
   }
 
   getFeatureStyle(feature: Feature, color: { color: string } = { color: "white" } ): ol.style.Style {
     let imageIOptions = Object.assign({}, this.getImageOptions(feature), color);
-    return this.getStyle(imageIOptions, feature.get("name") || "001");
+    return this.getStyle(imageIOptions, feature.get("name") || "no name");
   }
 
   private getImageOptions(feature: Feature)  {

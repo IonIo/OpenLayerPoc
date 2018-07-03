@@ -28,6 +28,7 @@ import { OverlayContentComponent } from './map/components/overlay-content/overla
 import { CameraEditFormComponent } from './map/components/forms/camera-edit-form/camera-edit-form.component';
 import { FormContentDirective } from './map/directives/form-content.directive';
 import { PolygonEditFormComponent } from './map/components/forms/polygon-edit-form/polygon-edit-form.component';
+import { CameraAlarmManagerComponent } from './map/components/camera-alarm-manager/camera-alarm-manager.component';
 
 
 @NgModule({
@@ -45,6 +46,7 @@ import { PolygonEditFormComponent } from './map/components/forms/polygon-edit-fo
     FormContentDirective,
     PolygonEditFormComponent,
     ToolbarComponent,
+    CameraAlarmManagerComponent,
   ],
   imports: [
     AppRoutingModule,

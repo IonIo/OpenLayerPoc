@@ -88,7 +88,7 @@ export class OverlayContentComponent implements AfterViewInit, OnInit, OnDestroy
     let componentRef = viewContainerRef.createComponent(componentFactory);
     this.instance = (<BaseEditorForm<FormModel>>componentRef.instance);
     this.instance.overlay = this.overlay;
-    this.instance.feature({ payload: feature, operation: operation });
+    this.instance.setFeatureItem({ payload: feature, operation: operation });
   }
 
   private addOverlay() {

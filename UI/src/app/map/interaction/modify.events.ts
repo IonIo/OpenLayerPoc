@@ -36,6 +36,7 @@ export class ModifyManager {
     });
 
     private onAdd = ((evt) => {
+        
         const feature = evt.element;
         this.onAddSelectedEvent.emit(feature);
        

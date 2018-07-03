@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Map.BackEnd.AlarmHub;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -17,37 +18,43 @@ namespace Map.BackEnd
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
-           services.AddMvc();
-           services.AddCors();
+            services.AddMvc();
+            services.AddCors();
+            services.AddSignalR();
+
         }
 
-    // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-    public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
-          app.UseFileServer(new FileServerOptions
-          {
-            FileProvider = new PhysicalFileProvider(
-            Path.Combine(Directory.GetCurrentDirectory(), "MyStaticFiles")),
-            RequestPath = "/StaticFiles",
-            EnableDirectoryBrowsing = true
-          });
+            app.UseFileServer(new FileServerOptions
+            {
+                FileProvider = new PhysicalFileProvider(
+              Path.Combine(Directory.GetCurrentDirectory(), "MyStaticFiles")),
+                RequestPath = "/StaticFiles",
+                EnableDirectoryBrowsing = true
+            });
 
-          app.UseCors(builder =>
-              builder.WithOrigins("http://localhost:4251")
-                .AllowAnyHeader());
+            app.UseCors(builder =>
+                builder.WithOrigins("http://localhost:4251")
+                  .AllowAnyHeader());
 
-      if (env.IsDevelopment())
+            if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
-          app.UseMvc(routes =>
-          {
-            routes.MapRoute("default", "{controller=Home}/{action=Index}/{id?}");
-          });
-      app.Run(async (context) =>
+            app.UseMvc(routes =>
             {
-                await context.Response.WriteAsync("Hello World!");
+                routes.MapRoute("default", "{controller=Home}/{action=Index}/{id?}");
             });
+            app.UseSignalR(routes =>
+            {
+                routes.MapHub<GsecMapAlarmHub>("/alarm");
+            });
+            app.Run(async (context) =>
+                  {
+                      await context.Response.WriteAsync("Hello World!");
+                  });
         }
     }
 }

@@ -1,5 +1,6 @@
 import { UpdateFeatureAction, AddFeatureAction, RemoveFeatureAction } from './../common/actions';
 import { Feature } from 'ol/feature';
+import { interval } from 'rxjs';
 
 import { LocalStorageService } from './local-storage.service';
 
@@ -12,11 +13,18 @@ import { Observable, BehaviorSubject, Subject } from "rxjs";
 import * as ol from 'openlayers';
 import { ActionsBusService } from './actions-bus.service';
 import { takeUntil } from 'rxjs/operators';
+import { HubConnectionBuilder, LogLevel } from '@aspnet/signalr';
 
 @Injectable({
   providedIn: 'root'
 })
 export class FeatureService {
+  public hubUrl = 'http://localhost:4251/alarm';
+  public hubConnection = new HubConnectionBuilder()
+    .withUrl(this.hubUrl)
+    .configureLogging(LogLevel.Information)
+    .build();
+
   private unsubscribe = new Subject<void>();
   private geojsonFormat = new ol.format.GeoJSON();
   private readonly KEY: string = "feature";
@@ -28,14 +36,9 @@ export class FeatureService {
   });
   public selectedMapId: string;
   public features$: BehaviorSubject<any> = new BehaviorSubject<any>([]);
-  public actions$: BehaviorSubject<any> = new BehaviorSubject<any>(null);
 
   public featuresObservable(): Observable<any> {
     return this.features$.asObservable();
-  }
-
-  public get selectedFeature(): Observable<any> {
-    return this.actions$.asObservable();
   }
 
   public getOpenLayerFeaturesFromGeoJsonFromat(geoJsonObject: any): any {
@@ -56,68 +59,94 @@ export class FeatureService {
     this.actionsBusService.of(UpdateFeatureAction)
       .subscribe(action => {
         this.updateFeatures(action.payload);
-      })
+      });
+
     this.actionsBusService.of(AddFeatureAction)
       .subscribe(action => {
         this.addFeatures(action.payload);
-      })
+      });
+
     this.actionsBusService.of(RemoveFeatureAction)
       .subscribe(action => {
         this.removeFeatures(action.payload);
-      })
+      });
+
   }
 
+
   initStore(mapId: string) {
+
     this.selectedMapId = mapId;
+
     let featureCollections: any = this.localStorage.getItem(this.KEY);
+
     if (!featureCollections) {
+
       featureCollections = gedInitData();
-      this.localStorage.setItem(this.KEY, featureCollections)
+      this.localStorage.setItem(this.KEY, featureCollections);
+
     }
+
     this.setFeatureCollectionIfNotExist(featureCollections);
+
   }
 
   private setFeatureCollectionIfNotExist(featureCollections: any) {
+
     let collectionForSelectedMap: any = featureCollections.find(item => item.mapId == this.selectedMapId);
+
     if (!collectionForSelectedMap) {
       collectionForSelectedMap = { mapId: this.selectedMapId, featureCollection: getDefaultFeatureCollectionDefinition() }
       this.localStorage.setItem(this.KEY, [...featureCollections, collectionForSelectedMap]);
     }
+
     this.features$.next(this.getOpenLayerFeaturesFromGeoJsonFromat(collectionForSelectedMap.featureCollection));
   }
 
   loadFeatures(extent: any, resolution: any, projection: any, layer: any) {
+
     let features = this.features$.getValue();
+
     if (features != null && features.length > 0) {
       this.features$.next(features);
     }
   }
 
   addFeatures(feature: any) {
+
     const featureConfig = this.getFeatureConfig();
+
     let index = featureConfig.collection[featureConfig.collectionIndex].featureCollection.features.length;
-    feature.setId(++index)
+    feature.setId(++index);
+
     const newCollection = this.updateNestedFeaturesCollectionAddItem(featureConfig.collection, this.getFeaturePayload(feature), 
       featureConfig.collectionIndex)
-    let features = this.getOpenLayerFeaturesFromGeoJsonFromat(newCollection[featureConfig.collectionIndex].featureCollection)
-    this.features$.next(features);
-    this.localStorage.setItem(this.KEY, newCollection);
+
+     this.saveAndPushUpdates(newCollection);
   }
 
 
   updateFeatures(feature: any) {
+
     const featureConfig = this.getFeatureConfig();
+
     let newCollection = this.updateNestedFeaturesCollectionUpdateItem(featureConfig.collection, this.getFeaturePayload(feature), 
     featureConfig.collectionIndex);
-    this.localStorage.setItem(this.KEY, newCollection);
+
+    this.saveAndPushUpdates(newCollection);
   }
 
   removeFeatures(feature: any) {
+
     const featureConfig = this.getFeatureConfig();
+
     let newCollection = this.updateNestedFeaturesCollectionRemoveItem(featureConfig.collection, this.getFeaturePayload(feature), 
       featureConfig.collectionIndex);
-    this.localStorage.setItem(this.KEY, newCollection);
+
+      this.saveAndPushUpdates(newCollection);
   }
+
+  
 
   private getFeatureConfig() {
     let items: any = this.localStorage.getItem(this.KEY);
@@ -126,6 +155,12 @@ export class FeatureService {
       collection: items,
       collectionIndex: collectionIndex
     }
+  }
+
+  saveAndPushUpdates(newCollection) {
+    let features = this.getOpenLayerFeaturesFromGeoJsonFromat(newCollection[this.getFeatureConfig().collectionIndex].featureCollection)
+    this.features$.next(features);
+    this.localStorage.setItem(this.KEY, newCollection);
   }
 
 

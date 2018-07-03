@@ -28,18 +28,22 @@ export interface MapState {
   styleUrls: ['./map-dashboard.component.css'],
 })
 export class MapDashboardComponent implements AfterViewInit, OnDestroy {
-  ngOnDestroy(): void {
   
-     console.log("MapDashboardComponent  destriyed")
+  ngOnDestroy(): void {
+       console.log("MapDashboardComponent  destriyed")
   }
 
   private unsubscribe$: Subject<void> = new Subject<void>();
   private mapsSettingsItems: Observable<MapSettings[]>
   private mapOptions: MapSettings;
 
-  public nextMap(nextMap: any) {
-    this.router.navigate(['/map', 1]);
+  public nextMap(feature: any) {
+
+    if(feature && feature.get("destination")) {
+      this.router.navigate(['/map', feature.get("destination").id]);
+    }
   }
+
   constructor(private dialog: MatDialog, public featureService: FeatureService,
     private route: ActivatedRoute, private router: Router,
     private mapSettingsFeatureService: MapSettingsFeatureService,

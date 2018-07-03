@@ -1,0 +1,15 @@
+table {
+    width: 100%;
+  }
+
+  h3 {
+    margin: 16px;
+  }
+
+  .example-button-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+    margin: 16px;
+  }
+  

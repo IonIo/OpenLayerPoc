@@ -15,37 +15,55 @@ export interface CameraPoint extends FormModel {
 })
 export class CameraEditFormComponent extends BaseEditorForm<CameraPoint> implements OnDestroy {
 
+  featureForm: FormGroup;
+  
   private modeDescription: string = "Edit camera"
+
   @Input() coordinate: [number, number] = [0,0];
+
   @Input() overlay: any;
+
   @Input() mode?: 'EDIT' | 'ADD' = 'ADD';
-  @Input() feature(feature: any) {
-    super.feature = feature.payload;
+
+  public setFeatureItem(feature: any) {
+
+    super.setFeatureItem(feature.payload);
+
+
     if(feature.operation == "ADD") {
       this.modeDescription = "Add camera"
     }
+
+    this.mode = feature.operation;
+
     if(feature.payload) {
       this.featureForm.patchValue({
         name: feature.payload.get("name"),
         coordinate: feature.payload.getGeometry().getCoordinates(),
         src: 'http://localhost:4251/assets/icon.png',
         geometry: 'POINT'
-      })
+      });
     } else {
       this.featureForm.reset();
     }
+  };
+
+  public get featureItem(): any {
+    return super.getGeatureItem();
   }
 
-  featureForm: FormGroup;
 
   constructor(private mapFactory: MapFactory, private featureService: FeatureService, private fb: FormBuilder) {
+
     super();   
+
     this.featureForm = this.fb.group({
       name: ['', Validators.required],
       src: [''],
       coordinate: [''],
       geometry: ['']
     });
+
     console.log("CameraEditFormComponent created")
   }
 
@@ -53,18 +71,22 @@ export class CameraEditFormComponent extends BaseEditorForm<CameraPoint> impleme
     console.log("CameraEditFormComponent destroyed")
   }
 
-  onSave(item: CameraPoint) {
+   public onSave(item: CameraPoint) {
+
     if(this.mode == 'ADD') {
+
       let newObject = this.mapFactory.createIconFeature(this.featureForm.value);
       this.featureService.addFeatures(newObject);
+
     } else {
-      this.featureService.updateFeatures(newObject);
+
+      this.featureItem.set("name", this.featureForm.get("name").value);
+      this.featureService.updateFeatures(this.featureItem);
 
     }
   }
+
   onDismiss(item: CameraPoint) {}
 
-  ngOnInit() {
-  }
   get isValid() { return !this.featureForm.valid; }
 }

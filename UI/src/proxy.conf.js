@@ -5,9 +5,19 @@ const PROXY_CONFIG = [
             "/FileAPI",
             "/UploadFiles"
         ],
+        changeOrigin: true,
         target: "http://localhost:61833",
         secure: false
+    },
+    {
+        context: [
+            "/alarm",
+        ],
+        changeOrigin: true,
+        target: "http://localhost:61833",
+        secure: false,
+        ws:true
     }
 ]
-module.exports = PROXY_CONFIG;
 
+module.exports = PROXY_CONFIG;
