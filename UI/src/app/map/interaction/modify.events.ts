@@ -1,6 +1,6 @@
 import { Select, Pointer, Modify, Draw }  from 'ol/interaction';
 import { Injectable, EventEmitter } from '@angular/core';
-import { CustomInteraction } from './custom/drag-event-handler';
+import { CustomDragEventInteraction } from './custom/drag-event-handler';
 
 export interface Map<T> {
     [key: string]: T;
@@ -57,7 +57,7 @@ export class ModifyManager {
 
     private readonly select = new LiteEvent<Pointer>(Pointer);
     private readonly selectDoubleClick = new LiteEvent<Select>(Select);
-    private readonly drawAndDrop = new LiteEvent<CustomInteraction>(CustomInteraction);
+    private readonly drawAndDrop = new LiteEvent<CustomDragEventInteraction>(CustomDragEventInteraction);
 
     public get selectedFeature(): any {
         return this.select.interactionInstance.getFeatures();

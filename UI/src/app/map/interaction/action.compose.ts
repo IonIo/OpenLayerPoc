@@ -8,7 +8,7 @@ import * as ol from 'openlayers';
 import { Injectable, EventEmitter } from '@angular/core';
 import { interval } from 'rxjs';
 import { ModifyManager } from './modify.events';
-import { CustomInteraction } from './custom/drag-event-handler';
+import { CustomDragEventInteraction } from './custom/drag-event-handler';
 
 
 export interface Map<T> {
@@ -143,7 +143,7 @@ export class ActionCompose {
     public addModifyInteraction() {
         this.map.removeInteraction(this.draw);
         this.select = new ol.interaction.Select();
-        this.customDragEvantHandlerInteraction = new CustomInteraction();
+        this.customDragEvantHandlerInteraction = new CustomDragEventInteraction();
         this.map.addInteraction(this.select);
         this.map.addInteraction(this.customDragEvantHandlerInteraction);
         this.modify = new ol.interaction.Modify({

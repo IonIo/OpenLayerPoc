@@ -13,6 +13,7 @@ import { StyleDecorator } from '../services/style-decorator';
 export class MapFactory {
 
   private readonly extent = [0, 0, 1024, 968];
+  private readonly svgImageExtent = [0, 0, 512, 512];
   private readonly projection = new proj.Projection({
     code: 'xkcd-image',
     units: 'pixels',
@@ -41,6 +42,7 @@ export class MapFactory {
       ],
       url: staticSourceOptions.url,
       projection: this.projection,
+      imageSize: [1239,748],
       imageExtent: this.extent
     })
   }

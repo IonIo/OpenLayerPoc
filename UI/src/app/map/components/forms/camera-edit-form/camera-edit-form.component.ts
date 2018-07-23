@@ -17,7 +17,7 @@ export class CameraEditFormComponent extends BaseEditorForm<CameraPoint> impleme
 
   featureForm: FormGroup;
   
-  private modeDescription: string = "Edit camera"
+  public modeDescription: string = "Edit camera"
 
   @Input() coordinate: [number, number] = [0,0];
 

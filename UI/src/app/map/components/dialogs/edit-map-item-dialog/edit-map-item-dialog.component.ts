@@ -21,7 +21,7 @@ export class EditMapItemDialogComponent implements AfterViewInit {
   @ViewChild('file') file: ElementRef;
   @ViewChild('label') label: ElementRef;
   @ViewChild('fileName') fileName: ElementRef;
-  private mapSettingsForm: FormGroup;
+  public mapSettingsForm: FormGroup;
 
   constructor(private dialogRef: MatDialogRef<EditMapItemDialogComponent>,
     private actionsBusService: ActionsBusService,
@@ -75,9 +75,9 @@ export class EditMapItemDialogComponent implements AfterViewInit {
   private create() {
     this.uploadService.uploadFile(this.file.nativeElement.files[0]).subscribe((response: any) => {
       if (response.status == 200) {
-        let serviceImageUrl = 'http://localhost:61833/StaticFiles/{image}'
-        let fileUrl = serviceImageUrl.replace('{image}', this.fileName.nativeElement.textContent);
-        let staticSourceOptions = {
+        let serviceImageUrl = 'http://localhost:4251/StaticFiles/{image}'
+        const fileUrl = serviceImageUrl.replace('{image}', this.fileName.nativeElement.textContent);
+        const staticSourceOptions = {
           staticSourceOptions: {
             html: '',
             url: fileUrl

@@ -1,0 +1,8 @@
+version: '3'
+
+services:
+  back.map:
+    image: back.map
+    build:
+      context: .
+      dockerfile: Back.Map\Dockerfile

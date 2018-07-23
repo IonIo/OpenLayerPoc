@@ -9,33 +9,31 @@ import { NgModule } from '@angular/core';
 import { MatGridListModule, MatCardModule, MatMenuModule, MatIconModule, MatButtonModule } from '@angular/material';
 
 import { AppComponent } from './app.component';
-import { OverlayComponent } from './map/components/overlay/overlay.component';
 
 import {
   EditMapItemDialogComponent,
-  AddFeatureItemDialogComponent,
   GsecMapComponent,
   ListMapImageGroupComponent,
   ListMapImageItemComponent,
-  ToolbarComponent
+  ToolbarComponent,
+  OverlayContentComponent,
+  CameraEditFormComponent,
+  PolygonEditFormComponent,
+  CameraAlarmManagerComponent,
+  OverlayComponent
 } from './map/components/';
 
 import {
   MapDashboardComponent,
 } from './map/containers/';
 
-import { OverlayContentComponent } from './map/components/overlay-content/overlay-content.component';
-import { CameraEditFormComponent } from './map/components/forms/camera-edit-form/camera-edit-form.component';
 import { FormContentDirective } from './map/directives/form-content.directive';
-import { PolygonEditFormComponent } from './map/components/forms/polygon-edit-form/polygon-edit-form.component';
-import { CameraAlarmManagerComponent } from './map/components/camera-alarm-manager/camera-alarm-manager.component';
 
 
 @NgModule({
   declarations: [
     AppComponent,
     EditMapItemDialogComponent,
-    AddFeatureItemDialogComponent,
     GsecMapComponent,
     MapDashboardComponent,
     ListMapImageGroupComponent,
@@ -64,7 +62,6 @@ import { CameraAlarmManagerComponent } from './map/components/camera-alarm-manag
     MatButtonModule
   ],
   entryComponents: [
-    AddFeatureItemDialogComponent,
     EditMapItemDialogComponent,
     PolygonEditFormComponent,
     CameraEditFormComponent],

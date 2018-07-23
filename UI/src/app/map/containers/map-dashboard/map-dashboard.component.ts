@@ -34,8 +34,9 @@ export class MapDashboardComponent implements AfterViewInit, OnDestroy {
   }
 
   private unsubscribe$: Subject<void> = new Subject<void>();
-  private mapsSettingsItems: Observable<MapSettings[]>
-  private mapOptions: MapSettings;
+  
+  public mapOptions: MapSettings;
+  public mapsSettingsItems: Observable<MapSettings[]>
 
   public nextMap(feature: any) {
 
@@ -74,7 +75,7 @@ export class MapDashboardComponent implements AfterViewInit, OnDestroy {
     this.actionsBusService.publish(new ReinitializationOfMapAction(mapConfig));
   }
 
-  public createMap() {
+  public createMap(event: any) {
     this.dialog.open(EditMapItemDialogComponent, { width: '450px' });
   }
   public removeMap(mapConfig: MapSettings) {

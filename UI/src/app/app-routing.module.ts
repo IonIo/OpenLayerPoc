@@ -8,12 +8,7 @@ import { CameraAlarmManagerComponent } from './map/components';
 
 const routes: Routes = [
   { path: 'map', component: MapDashboardComponent },
-  {
-    path: 'map/:mapId', component: MapDashboardComponent,
-    // children: [
-    //   { path: 'map/:mapId', component: CameraAlarmManagerComponent }
-    // ]
-  },
+  { path: 'map/:mapId', component: MapDashboardComponent },
   { path: 'map/:mapId/alarm', component: CameraAlarmManagerComponent },
   { path: '**', redirectTo: 'map' }
 ];

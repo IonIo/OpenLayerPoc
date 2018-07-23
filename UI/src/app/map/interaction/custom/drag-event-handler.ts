@@ -1,6 +1,6 @@
 import * as ol from 'openlayers';
 
-export class DragEvantHandler {
+export class DragEventHandlerOptions {
 
     handleDownEvent = function (evt) {
         var map = evt.map;
@@ -60,8 +60,8 @@ export class DragEvantHandler {
     };
 }
 
-export class CustomInteraction extends ol.interaction.Pointer {
+export class CustomDragEventInteraction extends ol.interaction.Pointer {
     constructor() {
-        super(new DragEvantHandler());
+        super(new DragEventHandlerOptions());
     }
 }

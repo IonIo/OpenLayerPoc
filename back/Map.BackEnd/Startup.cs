@@ -27,6 +27,10 @@ namespace Map.BackEnd
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
+
+            app.UseDefaultFiles();
+            app.UseStaticFiles();
+
             app.UseFileServer(new FileServerOptions
             {
                 FileProvider = new PhysicalFileProvider(
@@ -34,6 +38,7 @@ namespace Map.BackEnd
                 RequestPath = "/StaticFiles",
                 EnableDirectoryBrowsing = true
             });
+
 
             app.UseCors(builder =>
                 builder.WithOrigins("http://localhost:4251")
@@ -51,10 +56,6 @@ namespace Map.BackEnd
             {
                 routes.MapHub<GsecMapAlarmHub>("/alarm");
             });
-            app.Run(async (context) =>
-                  {
-                      await context.Response.WriteAsync("Hello World!");
-                  });
         }
     }
 }

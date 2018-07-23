@@ -51,7 +51,7 @@ export class MapSettingsFeatureService {
   }
 
   initStore(): MapSettings[] {
-    
+
     let mapSetting = this.localStorageService.getItem(this.KEY);
 
     if (!mapSetting) {
@@ -75,8 +75,8 @@ export class MapSettingsFeatureService {
   }
 
   public updateItem(item: MapSettings) {
-    const mapSettings = this.mapSettings$.getValue();
 
+    const mapSettings = this.mapSettings$.getValue();
     const newArray = mapSettings.map(mapSetting => {
 
       if (mapSetting.id === item.id) {
@@ -108,24 +108,34 @@ export class MapSettingsFeatureService {
 export function gedInitData(): any {
   return [
     {
-      "id": "1",
-      "name": "GSEC Map 1",
-      "zoom": "2",
-      "maxZoom": "8",
       "staticSourceOptions": {
-        "html": "© <a href=\"http://xkcd.com/license.html\">xkcd</a>",
-        "url": "http://localhost:61833/StaticFiles/maps.jpg"
+        "html": "&copy; <a href=\"http://xkcd.com/license.html\">xkcd</a>",
+        "url": "http://localhost:4251/StaticFiles/maps.jpg"
       },
+      "zoom": 2,
+      "maxZoom": 8,
+      "name": "Gsec Map 1",
+      "id": "1"
     },
     {
-      "id": "2",
-      "name": "GSEC Map 1",
+      "name": "Gsec Map 2",
       "zoom": "2",
       "maxZoom": "8",
       "staticSourceOptions": {
-        "html": "© <a href=\"http://xkcd.com/license.html\">xkcd</a>",
-        "url": "http://localhost:61833/StaticFiles/GoogleMapSaver.jpg"
+        "html": "",
+        "url": "http://localhost:4251/StaticFiles/GoogleMapSaver.jpg"
       },
+      "id": "2"
+    },
+    {
+      "id": "3",
+      "name": "Gsec Map 3",
+      "zoom": "2",
+      "maxZoom": "10",
+      "staticSourceOptions": {
+        "html": "",
+        "url": "http://localhost:4251/StaticFiles/object1.png"
+      }
     }
   ]
 }

@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27130.2027
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Back.Map", "Back.Map\Back.Map.csproj", "{7320B3B8-64CE-4BBC-B028-B593F003F60B}"
+EndProject
+Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{EF3FDECC-ACAA-44D8-9576-3C0F540F116C}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7320B3B8-64CE-4BBC-B028-B593F003F60B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7320B3B8-64CE-4BBC-B028-B593F003F60B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7320B3B8-64CE-4BBC-B028-B593F003F60B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7320B3B8-64CE-4BBC-B028-B593F003F60B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EF3FDECC-ACAA-44D8-9576-3C0F540F116C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EF3FDECC-ACAA-44D8-9576-3C0F540F116C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EF3FDECC-ACAA-44D8-9576-3C0F540F116C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EF3FDECC-ACAA-44D8-9576-3C0F540F116C}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {03ECDE3D-14CD-49CF-AE38-8C9EEA6F764D}
+	EndGlobalSection
+EndGlobal
